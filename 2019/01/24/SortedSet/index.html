@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=6.7.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="mask-icon" href="/images/favicon_64.ico?v=6.7.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.7.0',
+    sidebar: {"position":"left","Pisces | Gemini":380,"width":300,"display":"post","offset":13,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="SortedSetZADD语法1ZADD key score member [[score member] [score member] ...] 参数说明 key 要添加的有序集合的键名称  score 要添加的有序集合成员的分数  member 要添加到有序集合中的成员  [score member] 表示可以同时添加多个成员与对应分支的键值对">
+<meta name="keywords" content="redis,缓存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis基础数据结构之SortedSet有序集合">
+<meta property="og:url" content="http://yoursite.com/2019/01/24/SortedSet/index.html">
+<meta property="og:site_name" content="GeekerHub">
+<meta property="og:description" content="SortedSetZADD语法1ZADD key score member [[score member] [score member] ...] 参数说明 key 要添加的有序集合的键名称  score 要添加的有序集合成员的分数  member 要添加到有序集合中的成员  [score member] 表示可以同时添加多个成员与对应分支的键值对">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210174303-aec12a70-879d-49ce-8d29-424592cf0e1e.png#align=left&display=inline&height=389&linkTarget=_blank&name=zadd.png&originHeight=389&originWidth=655&size=21589&width=655">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210351131-c5cb0e5b-db41-4a0f-bd9a-e4f8e8df187f.png#align=left&display=inline&height=121&linkTarget=_blank&name=zcard.png&originHeight=121&originWidth=688&size=10745&width=688">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210557964-28cefb2d-5a3c-4280-99c5-d725ca0b9f8a.png#align=left&display=inline&height=223&linkTarget=_blank&name=zcount.png&originHeight=223&originWidth=651&size=10530&width=651">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210763810-df560811-3585-42be-b303-946b9a99f46a.png#align=left&display=inline&height=150&linkTarget=_blank&name=zincrby.png&originHeight=150&originWidth=742&size=13227&width=742">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211162394-9a971c6f-b603-4b08-a692-c0672f6934f1.png#align=left&display=inline&height=597&linkTarget=_blank&name=zrange.png&originHeight=627&originWidth=783&size=37327&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211596435-a3af2df2-5a2d-4b5a-ac83-c1632ff32726.png#align=left&display=inline&height=745&linkTarget=_blank&name=zrangebyscore.png&originHeight=752&originWidth=753&size=37070&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211757394-f37b3c02-a377-4da7-989f-b957962839c6.png#align=left&display=inline&height=195&linkTarget=_blank&name=zrank.png&originHeight=195&originWidth=619&size=12348&width=619">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212010774-29bdc68e-d2cc-4930-8fbc-4da1efaabb3b.png#align=left&display=inline&height=190&linkTarget=_blank&name=zrem.png&originHeight=190&originWidth=680&size=14473&width=680">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212194944-d8ebf6ca-bf12-469d-a0d7-1e79104fa72b.png#align=left&display=inline&height=299&linkTarget=_blank&name=zremrangebyrank.png&originHeight=299&originWidth=540&size=14154&width=540">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212562199-eed183c1-35a1-4f1e-965b-14a90ed240f8.png#align=left&display=inline&height=373&linkTarget=_blank&name=zremrangebyscore.png&originHeight=373&originWidth=563&size=17948&width=563">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212737241-34cb7bec-2c1e-45c2-8306-a1eb96cd33a1.png#align=left&display=inline&height=269&linkTarget=_blank&name=zremrangebylex.png&originHeight=269&originWidth=620&size=14487&width=620">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212927373-49b25b90-326d-4dda-8f79-213c43f59a38.png#align=left&display=inline&height=297&linkTarget=_blank&name=zrevrange.png&originHeight=297&originWidth=610&size=12348&width=610">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213446201-cf42c9d8-178c-48d5-920d-792ed382a21c.png#align=left&display=inline&height=211&linkTarget=_blank&name=zrevrangebyscore.png&originHeight=211&originWidth=655&size=10922&width=655">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213577873-10c78be0-eb88-499e-9172-61de6b9c01ab.png#align=left&display=inline&height=224&linkTarget=_blank&name=zrevrank.png&originHeight=224&originWidth=679&size=12288&width=679">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213780395-01149e73-4c86-4c1c-bcf5-5f06fe31467f.png#align=left&display=inline&height=284&linkTarget=_blank&name=zscore.png&originHeight=284&originWidth=621&size=15488&width=621">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214135873-ce165051-72c0-4897-a997-97cf47475049.png#align=left&display=inline&height=491&linkTarget=_blank&name=zunionscore.png&originHeight=521&originWidth=791&size=27204&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214339905-ddcacae9-1b35-4ea4-9bab-14d2928aed6f.png#align=left&display=inline&height=394&linkTarget=_blank&name=zunionscore%20with%20max.png&originHeight=466&originWidth=883&size=25719&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214363681-3403a7a5-02b4-45ee-8ad5-30fd6e18b452.png#align=left&display=inline&height=409&linkTarget=_blank&name=zunionscore%20with%20min.png&originHeight=465&originWidth=848&size=25867&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214396973-b7272d1a-ab44-45f8-9a4d-cce2b4355690.png#align=left&display=inline&height=420&linkTarget=_blank&name=zunionscore%20with%20weights.png&originHeight=494&originWidth=877&size=29392&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214458995-3af31eb3-6d07-4c63-b409-7aa1b364e56a.png#align=left&display=inline&height=608&linkTarget=_blank&name=zunionscore%20with%20weights%20and%20max%20min.png&originHeight=625&originWidth=767&size=34146&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214777821-c2dc1489-09d3-4a1c-bec5-c55d365220eb.png#align=left&display=inline&height=393&linkTarget=_blank&name=zinter.png&originHeight=461&originWidth=874&size=22672&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214814800-937a47b3-9221-4aa7-b5fc-5bc4f1a8f6d3.png#align=left&display=inline&height=550&linkTarget=_blank&name=zinter%20with%20max%20min.png&originHeight=629&originWidth=853&size=29984&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548215079415-882f04ad-0206-40b5-a476-33f3289b25aa.png#align=left&display=inline&height=508&linkTarget=_blank&name=zrangebylex.png&originHeight=557&originWidth=818&size=27035&width=746">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548215227558-230a2b02-fbe4-4d73-997a-9f42d565481e.png#align=left&display=inline&height=180&linkTarget=_blank&name=zlexcount.png&originHeight=180&originWidth=622&size=10625&width=622">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224405615-cba8371c-1bfc-403f-8486-aa8bf308f465.png#align=left&display=inline&height=518&linkTarget=_blank&name=1.png&originHeight=518&originWidth=743&size=21062&width=743">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224419988-b00a4ec5-c45b-4c61-a5ae-83f04954f918.png#align=left&display=inline&height=247&linkTarget=_blank&name=update%20curry%20English.png&originHeight=247&originWidth=568&size=8784&width=568">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224428919-7cf38bd6-beee-4f9f-abdf-0fc5f86e0646.png#align=left&display=inline&height=235&linkTarget=_blank&name=3.png&originHeight=235&originWidth=494&size=7822&width=494">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224439087-64060b18-1bd9-41fd-89d8-8caf6fcc4462.png#align=left&display=inline&height=299&linkTarget=_blank&name=4.png&originHeight=299&originWidth=570&size=10658&width=570">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224603426-24a46f07-f296-4d03-a180-21df9e3794d0.png#align=left&display=inline&height=418&linkTarget=_blank&name=5.png&originHeight=418&originWidth=579&size=13222&width=579">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224657354-8d08b89d-5801-4052-bf54-4e3380eaf785.png#align=left&display=inline&height=252&linkTarget=_blank&name=6.png&originHeight=252&originWidth=532&size=9078&width=532">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224723720-78613ec4-f226-432a-8377-a43c514acd55.png#align=left&display=inline&height=60&linkTarget=_blank&name=7.png&originHeight=60&originWidth=413&size=2552&width=413">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224777107-9de35135-5906-484a-8660-68198f73d2fa.png#align=left&display=inline&height=199&linkTarget=_blank&name=8.png&originHeight=199&originWidth=427&size=6948&width=427">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224804009-5bc73e58-5e47-422c-8769-1b12f84d8217.png#align=left&display=inline&height=197&linkTarget=_blank&name=8%EF%BC%882%EF%BC%89.png&originHeight=197&originWidth=520&size=8891&width=520">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224834011-54072867-cd8c-4ed3-a3d7-a71b8c904374.png#align=left&display=inline&height=164&linkTarget=_blank&name=9.png&originHeight=164&originWidth=432&size=6017&width=432">
+<meta property="og:updated_time" content="2019-01-24T10:21:51.685Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redis基础数据结构之SortedSet有序集合">
+<meta name="twitter:description" content="SortedSetZADD语法1ZADD key score member [[score member] [score member] ...] 参数说明 key 要添加的有序集合的键名称  score 要添加的有序集合成员的分数  member 要添加到有序集合中的成员  [score member] 表示可以同时添加多个成员与对应分支的键值对">
+<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210174303-aec12a70-879d-49ce-8d29-424592cf0e1e.png#align=left&display=inline&height=389&linkTarget=_blank&name=zadd.png&originHeight=389&originWidth=655&size=21589&width=655">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/01/24/SortedSet/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>redis基础数据结构之SortedSet有序集合 | GeekerHub</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GeekerHub</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">信任 承诺 关怀</h1>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+  
+  
+  
+  
+
+  
+
+  <a href="https://github.com/geekerhub" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" style="fill: #222; color: #fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/24/SortedSet/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="黑与白">
+      <meta itemprop="description" content="Trust Commitment Care">
+      <meta itemprop="image" content="/images/avatar_4.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GeekerHub">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">redis基础数据结构之SortedSet有序集合
+
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-24 18:46:14 / 修改时间：18:21:51" itemprop="dateCreated datePublished" datetime="2019-01-24T18:46:14+08:00">2019-01-24</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/编程/" itemprop="url" rel="index"><span itemprop="name">编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">8.9k</span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="SortedSet"><a href="#SortedSet" class="headerlink" title="SortedSet"></a>SortedSet</h1><h2 id="ZADD"><a href="#ZADD" class="headerlink" title="ZADD"></a>ZADD</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZADD key score member [[score member] [score member] ...]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li><p>key 要添加的有序集合的键名称</p>
+</li>
+<li><p>score 要添加的有序集合成员的分数</p>
+</li>
+<li><p>member 要添加到有序集合中的成员</p>
+</li>
+<li><p>[score member] 表示可以同时添加多个成员与对应分支的键值对</p>
+<a id="more"></a>
+<h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p>将一个或多个 <code>member</code> 元素及其 <code>score</code> 值加入到有序集 <code>key</code> 当中。<br>如果某个 <code>member</code> 已经是有序集的成员，那么更新这个 <code>member</code> 的 <code>score</code> 值，并通过重新插入这个 <code>member</code> 元素，来保证该 <code>member</code> 在正确的位置上。<br><code>score</code> 值可以是整数值或双精度浮点数。<br>如果 <code>key</code> 不存在，则创建一个空的有序集并执行 <a href="http://redisdoc.com/sorted_set/zadd.html#zadd" target="_blank" rel="noopener">ZADD</a> 操作。<br>当 <code>key</code> 存在但不是有序集类型时，返回一个错误。</p>
+<h3 id="时间复杂度"><a href="#时间复杂度" class="headerlink" title="时间复杂度"></a>时间复杂度</h3><p>O(M*log(N))， <code>N</code> 是有序集的基数， <code>M</code> 为成功添加的新成员的数量。</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><p>被成功添加的新成员的数量，不包括那些被更新的、已经存在的成员。</p>
+<h3 id="示例图片"><a href="#示例图片" class="headerlink" title="示例图片"></a>示例图片</h3><p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210174303-aec12a70-879d-49ce-8d29-424592cf0e1e.png#align=left&amp;display=inline&amp;height=389&amp;linkTarget=_blank&amp;name=zadd.png&amp;originHeight=389&amp;originWidth=655&amp;size=21589&amp;width=655" alt="zadd.png"></p>
+</li>
+</ul>
+<hr>
+<h2 id="ZCARD"><a href="#ZCARD" class="headerlink" title="ZCARD"></a>ZCARD</h2><h3 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZCARD key</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-1"><a href="#参数说明-1" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称<h3 id="作用-1"><a href="#作用-1" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 的基数。<h3 id="时间复杂度-1"><a href="#时间复杂度-1" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(1)<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3>当 <code>key</code> 存在且是有序集类型时，返回有序集的基数。<br>当 <code>key</code> 不存在时，返回 <code>0</code> 。<h3 id="示例图片-1"><a href="#示例图片-1" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210351131-c5cb0e5b-db41-4a0f-bd9a-e4f8e8df187f.png#align=left&amp;display=inline&amp;height=121&amp;linkTarget=_blank&amp;name=zcard.png&amp;originHeight=121&amp;originWidth=688&amp;size=10745&amp;width=688" alt="zcard.png"></li>
+</ul>
+<hr>
+<h2 id="ZCOUNT"><a href="#ZCOUNT" class="headerlink" title="ZCOUNT"></a>ZCOUNT</h2><h3 id="语法-2"><a href="#语法-2" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZCOUNT key min max</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-2"><a href="#参数说明-2" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称</li>
+<li>min 有序集合中score的最小取值</li>
+<li>max 有序集合中score的最大取值<h3 id="作用-2"><a href="#作用-2" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中， <code>score</code> 值在 <code>min</code> 和 <code>max</code> 之间(默认包括 <code>score</code> 值等于 <code>min</code> 或 <code>max</code> )的成员的数量。<h3 id="时间复杂度-2"><a href="#时间复杂度-2" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N))， <code>N</code> 为有序集的基数。<h3 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h3><code>score</code> 值在 <code>min</code> 和 <code>max</code> 之间的成员的数量。<h3 id="示例图片-2"><a href="#示例图片-2" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210557964-28cefb2d-5a3c-4280-99c5-d725ca0b9f8a.png#align=left&amp;display=inline&amp;height=223&amp;linkTarget=_blank&amp;name=zcount.png&amp;originHeight=223&amp;originWidth=651&amp;size=10530&amp;width=651" alt="zcount.png"></li>
+</ul>
+<hr>
+<h2 id="ZINCRBY"><a href="#ZINCRBY" class="headerlink" title="ZINCRBY"></a>ZINCRBY</h2><h3 id="语法-3"><a href="#语法-3" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZINCRBY key increment member</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-3"><a href="#参数说明-3" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称</li>
+<li>increment 对有序集合成员的score值要操作的增量</li>
+<li>member 要操作的有序集合的成员<h3 id="作用-3"><a href="#作用-3" class="headerlink" title="作用"></a>作用</h3>为有序集 <code>key</code> 的成员 <code>member</code> 的 <code>score</code> 值加上增量 <code>increment</code> 。<br>可以通过传递一个负数值 <code>increment</code> ，让 <code>score</code> 减去相应的值，比如 <code>ZINCRBY key -5 member</code> ，就是让 <code>member</code> 的 <code>score</code> 值减去 <code>5</code> 。<br>当 <code>key</code> 不存在，或 <code>member</code> 不是 <code>key</code> 的成员时， <code>ZINCRBY key increment member</code> 等同于 <code>ZADD key increment member</code> 。<br>当 <code>key</code> 不是有序集类型时，返回一个错误。<br><code>score</code> 值可以是整数值或双精度浮点数。<h3 id="时间复杂度-3"><a href="#时间复杂度-3" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N))<h3 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h3><code>member</code> 成员的新 <code>score</code> 值，以字符串形式表示。<h3 id="示例图片-3"><a href="#示例图片-3" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548210763810-df560811-3585-42be-b303-946b9a99f46a.png#align=left&amp;display=inline&amp;height=150&amp;linkTarget=_blank&amp;name=zincrby.png&amp;originHeight=150&amp;originWidth=742&amp;size=13227&amp;width=742" alt="zincrby.png"></li>
+</ul>
+<hr>
+<h2 id="ZRANGE"><a href="#ZRANGE" class="headerlink" title="ZRANGE"></a>ZRANGE</h2><h3 id="语法-4"><a href="#语法-4" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZRANGE key start stop [WITHSCORES]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-4"><a href="#参数说明-4" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称</li>
+<li>start 有序集合成员下标的起始值，0表示第一个成员</li>
+<li>stop 有序集合成员下标的结束值，-1表示最后一个成员</li>
+<li>[WITHSCORES] 可选项，表示查询有序集合成员时是否同时返回成员的score值<h3 id="作用-4"><a href="#作用-4" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中，指定区间内的成员。<br>其中成员的位置按 <code>score</code> 值递增(从小到大)来排序。<br>具有相同 <code>score</code> 值的成员按字典序(<a href="http://en.wikipedia.org/wiki/Lexicographical_order" target="_blank" rel="noopener">lexicographical order</a> )来排列。<br>如果你需要成员按 <code>score</code> 值递减(从大到小)来排列，请使用 <a href="http://redisdoc.com/sorted_set/zrevrange.html#zrevrange" target="_blank" rel="noopener">ZREVRANGE</a> 命令。<br>下标参数 <code>start</code> 和 <code>stop</code> 都以 <code>0</code> 为底，也就是说，以 <code>0</code> 表示有序集第一个成员，以 <code>1</code> 表示有序集第二个成员，以此类推。<br>你也可以使用负数下标，以 <code>-1</code> 表示最后一个成员， <code>-2</code> 表示倒数第二个成员，以此类推。<br>超出范围的下标并不会引起错误。<br>比如说，当 <code>start</code> 的值比有序集的最大下标还要大，或是 <code>start &gt; stop</code> 时， <a href="http://redisdoc.com/sorted_set/zrange.html#zrange" target="_blank" rel="noopener">ZRANGE</a> 命令只是简单地返回一个空列表。<br>另一方面，假如 <code>stop</code> 参数的值比有序集的最大下标还要大，那么 Redis 将 <code>stop</code> 当作最大下标来处理。<br>可以通过使用 <code>WITHSCORES</code> 选项，来让成员和它的 <code>score</code> 值一并返回，返回列表以 <code>value1,score1, ..., valueN,scoreN</code> 的格式表示。<br>客户端库可能会返回一些更复杂的数据类型，比如数组、元组等。<h3 id="时间复杂度-4"><a href="#时间复杂度-4" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数，而 <code>M</code> 为结果集的基数。<h3 id="返回值-4"><a href="#返回值-4" class="headerlink" title="返回值"></a>返回值</h3>指定区间内，带有 <code>score</code> 值(可选)的有序集成员的列表。<h3 id="示例图片-4"><a href="#示例图片-4" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211162394-9a971c6f-b603-4b08-a692-c0672f6934f1.png#align=left&amp;display=inline&amp;height=597&amp;linkTarget=_blank&amp;name=zrange.png&amp;originHeight=627&amp;originWidth=783&amp;size=37327&amp;width=746" alt="zrange.png"></li>
+</ul>
+<hr>
+<h2 id="ZRANGEBYSCORE"><a href="#ZRANGEBYSCORE" class="headerlink" title="ZRANGEBYSCORE"></a>ZRANGEBYSCORE</h2><h3 id="语法-5"><a href="#语法-5" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-5"><a href="#参数说明-5" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称</li>
+<li>min 有序集合成员score的最小取值</li>
+<li>max 有序集合成员score的最大取值</li>
+<li>[WITHSCORES] 查询结果是否同时返回符合条件成员的score值</li>
+<li>[LIMIT offset count] 对查询的结果集进行数量限制，offset表示结果集的起始位置，count表示取出结果集的几个结果，例如结果集是[1,2,3]，limit 0 2，则最终结果是[1,2]<h3 id="作用-5"><a href="#作用-5" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中，所有 <code>score</code> 值介于 <code>min</code> 和 <code>max</code> 之间(包括等于 <code>min</code> 或 <code>max</code> )的成员。有序集成员按 <code>score</code> 值递增(从小到大)次序排列。<br>具有相同 <code>score</code> 值的成员按字典序(<a href="http://en.wikipedia.org/wiki/Lexicographical_order" target="_blank" rel="noopener">lexicographical order</a>)来排列(该属性是有序集提供的，不需要额外的计算)。<br>可选的 <code>LIMIT</code> 参数指定返回结果的数量及区间(就像SQL中的 <code>SELECT LIMIT offset, count</code> )，注意当 <code>offset</code> 很大时，定位 <code>offset</code> 的操作可能需要遍历整个有序集，此过程最坏复杂度为 O(N) 时间。<br>可选的 <code>WITHSCORES</code> 参数决定结果集是单单返回有序集的成员，还是将有序集成员及其 <code>score</code> 值一起返回。<br>该选项自 Redis 2.0 版本起可用。<h4 id="区间"><a href="#区间" class="headerlink" title="区间"></a>区间</h4><code>min</code> 和 <code>max</code> 可以是 <code>-inf</code> 和 <code>+inf</code> ，这样一来，你就可以在不知道有序集的最低和最高 <code>score</code> 值的情况下，使用 <a href="http://redisdoc.com/sorted_set/zrangebyscore.html#zrangebyscore" target="_blank" rel="noopener">ZRANGEBYSCORE</a> 这类命令。<br>默认情况下，区间的取值使用<a href="http://zh.wikipedia.org/wiki/%E5%8D%80%E9%96%93" target="_blank" rel="noopener">闭区间</a> (小于等于或大于等于)，你也可以通过给参数前增加 <code>(</code> 符号来使用可选的<a href="http://zh.wikipedia.org/wiki/%E5%8D%80%E9%96%93" target="_blank" rel="noopener">开区间</a> (小于或大于)。<h3 id="时间复杂度-5"><a href="#时间复杂度-5" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数， <code>M</code> 为被结果集的基数。<h3 id="返回值-5"><a href="#返回值-5" class="headerlink" title="返回值"></a>返回值</h3>指定区间内，带有 <code>score</code> 值(可选)的有序集成员的列表。<h3 id="示例图片-5"><a href="#示例图片-5" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211596435-a3af2df2-5a2d-4b5a-ac83-c1632ff32726.png#align=left&amp;display=inline&amp;height=745&amp;linkTarget=_blank&amp;name=zrangebyscore.png&amp;originHeight=752&amp;originWidth=753&amp;size=37070&amp;width=746" alt="zrangebyscore.png"></li>
+</ul>
+<hr>
+<h2 id="ZRANK"><a href="#ZRANK" class="headerlink" title="ZRANK"></a>ZRANK</h2><h3 id="语法-6"><a href="#语法-6" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZRANK key member</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-6"><a href="#参数说明-6" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key 有序集合的键名称</li>
+<li>member 要查询的有序集合中的成员<h3 id="作用-6"><a href="#作用-6" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中成员 <code>member</code> 的排名。其中有序集成员按 <code>score</code> 值递增(从小到大)顺序排列。<br>排名以 <code>0</code> 为底，也就是说， <code>score</code> 值最小的成员排名为 <code>0</code> 。<br>使用 <a href="http://redisdoc.com/sorted_set/zrevrank.html#zrevrank" target="_blank" rel="noopener">ZREVRANK</a> 命令可以获得成员按 <code>score</code> 值递减(从大到小)排列的排名。<h3 id="时间复杂度-6"><a href="#时间复杂度-6" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N))<h3 id="返回值-6"><a href="#返回值-6" class="headerlink" title="返回值"></a>返回值</h3>如果 <code>member</code> 是有序集 <code>key</code> 的成员，返回 <code>member</code> 的排名。<br>如果 <code>member</code> 不是有序集 <code>key</code> 的成员，返回 <code>nil</code> 。<h3 id="示例图片-6"><a href="#示例图片-6" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548211757394-f37b3c02-a377-4da7-989f-b957962839c6.png#align=left&amp;display=inline&amp;height=195&amp;linkTarget=_blank&amp;name=zrank.png&amp;originHeight=195&amp;originWidth=619&amp;size=12348&amp;width=619" alt="zrank.png"></li>
+</ul>
+<hr>
+<h2 id="ZREM"><a href="#ZREM" class="headerlink" title="ZREM"></a>ZREM</h2><h3 id="语法-7"><a href="#语法-7" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREM key member [member ...]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-7"><a href="#参数说明-7" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>member    要删除的有序集合的成员</li>
+<li>[member …] 可以同时删除多个成员<h3 id="作用-7"><a href="#作用-7" class="headerlink" title="作用"></a>作用</h3>移除有序集 <code>key</code> 中的一个或多个成员，不存在的成员将被忽略。<br>当 <code>key</code> 存在但不是有序集类型时，返回一个错误。<h3 id="时间复杂度-7"><a href="#时间复杂度-7" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(M*log(N))， <code>N</code> 为有序集的基数， <code>M</code> 为被成功移除的成员的数量。<h3 id="返回值-7"><a href="#返回值-7" class="headerlink" title="返回值"></a>返回值</h3>被成功移除的成员的数量，不包括被忽略的成员。<h3 id="示例图片-7"><a href="#示例图片-7" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212010774-29bdc68e-d2cc-4930-8fbc-4da1efaabb3b.png#align=left&amp;display=inline&amp;height=190&amp;linkTarget=_blank&amp;name=zrem.png&amp;originHeight=190&amp;originWidth=680&amp;size=14473&amp;width=680" alt="zrem.png"></li>
+</ul>
+<hr>
+<h2 id="ZREMRANGEBYRANK"><a href="#ZREMRANGEBYRANK" class="headerlink" title="ZREMRANGEBYRANK"></a>ZREMRANGEBYRANK</h2><h3 id="语法-8"><a href="#语法-8" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREMRANGEBYRANK key start stop</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-8"><a href="#参数说明-8" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>start    有序集合成员的下标起始值</li>
+<li>stop    有序集合成员的下标结束值<h3 id="作用-8"><a href="#作用-8" class="headerlink" title="作用"></a>作用</h3>移除有序集 <code>key</code> 中，指定排名(rank)区间内的所有成员。<br>区间分别以下标参数 <code>start</code> 和 <code>stop</code> 指出，包含 <code>start</code> 和 <code>stop</code> 在内。<br>下标参数 <code>start</code> 和 <code>stop</code> 都以 <code>0</code> 为底，也就是说，以 <code>0</code> 表示有序集第一个成员，以 <code>1</code> 表示有序集第二个成员，以此类推。<br>你也可以使用负数下标，以 <code>-1</code> 表示最后一个成员， <code>-2</code> 表示倒数第二个成员，以此类推。<h3 id="时间复杂度-8"><a href="#时间复杂度-8" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数，而 <code>M</code> 为被移除成员的数量。<h3 id="返回值-8"><a href="#返回值-8" class="headerlink" title="返回值"></a>返回值</h3>被移除成员的数量。<h3 id="示例图片-8"><a href="#示例图片-8" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212194944-d8ebf6ca-bf12-469d-a0d7-1e79104fa72b.png#align=left&amp;display=inline&amp;height=299&amp;linkTarget=_blank&amp;name=zremrangebyrank.png&amp;originHeight=299&amp;originWidth=540&amp;size=14154&amp;width=540" alt="zremrangebyrank.png"></li>
+</ul>
+<hr>
+<h2 id="ZREMRANGEBYSCORE"><a href="#ZREMRANGEBYSCORE" class="headerlink" title="ZREMRANGEBYSCORE"></a>ZREMRANGEBYSCORE</h2><h3 id="语法-9"><a href="#语法-9" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREMRANGEBYSCORE key min max</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-9"><a href="#参数说明-9" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>min   有序集合score的最小取值 </li>
+<li>max    有序集合score的最大取值<h3 id="作用-9"><a href="#作用-9" class="headerlink" title="作用"></a>作用</h3>移除有序集 <code>key</code> 中，所有 <code>score</code> 值介于 <code>min</code> 和 <code>max</code> 之间(包括等于 <code>min</code> 或 <code>max</code> )的成员。<br>自版本2.1.6开始， <code>score</code> 值等于 <code>min</code> 或 <code>max</code> 的成员也可以不包括在内，详情请参见 <a href="http://redisdoc.com/sorted_set/zrangebyscore.html#zrangebyscore" target="_blank" rel="noopener">ZRANGEBYSCORE</a> 命令。<h3 id="时间复杂度-9"><a href="#时间复杂度-9" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数，而 <code>M</code> 为被移除成员的数量。<h3 id="返回值-9"><a href="#返回值-9" class="headerlink" title="返回值"></a>返回值</h3>被移除成员的数量。<h3 id="示例图片-9"><a href="#示例图片-9" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212562199-eed183c1-35a1-4f1e-965b-14a90ed240f8.png#align=left&amp;display=inline&amp;height=373&amp;linkTarget=_blank&amp;name=zremrangebyscore.png&amp;originHeight=373&amp;originWidth=563&amp;size=17948&amp;width=563" alt="zremrangebyscore.png"></li>
+</ul>
+<hr>
+<h2 id="ZREMRANGEBYLEX"><a href="#ZREMRANGEBYLEX" class="headerlink" title="ZREMRANGEBYLEX"></a>ZREMRANGEBYLEX</h2><h3 id="语法-10"><a href="#语法-10" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREMRANGEBYLEX key min max</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-10"><a href="#参数说明-10" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>min    有序集合中成员下标的起始值</li>
+<li>max    有序集合中成员下标的结束值  <h3 id="作用-10"><a href="#作用-10" class="headerlink" title="作用"></a>作用</h3>对于一个所有成员的分值都相同的有序集合键 <code>key</code> 来说， 这个命令会移除该集合中， 成员介于 <code>min</code> 和 <code>max</code> 范围内的所有元素。<h3 id="时间复杂度-10"><a href="#时间复杂度-10" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， 其中 N 为有序集合的元素数量， 而 M 则为被移除的元素数量。<h3 id="返回值-10"><a href="#返回值-10" class="headerlink" title="返回值"></a>返回值</h3>整数回复：被移除的元素数量。<h3 id="示例图片-10"><a href="#示例图片-10" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212737241-34cb7bec-2c1e-45c2-8306-a1eb96cd33a1.png#align=left&amp;display=inline&amp;height=269&amp;linkTarget=_blank&amp;name=zremrangebylex.png&amp;originHeight=269&amp;originWidth=620&amp;size=14487&amp;width=620" alt="zremrangebylex.png"></li>
+</ul>
+<hr>
+<h2 id="ZREVRANGE"><a href="#ZREVRANGE" class="headerlink" title="ZREVRANGE"></a>ZREVRANGE</h2><h3 id="语法-11"><a href="#语法-11" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREVRANGE key start stop [WITHSCORES]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-11"><a href="#参数说明-11" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>start    有序集合成员下标起始值</li>
+<li>stop    有序集合成员下标结束值</li>
+<li>[WITHSCORES]    是否返回结果集中的成员对应score值<h3 id="作用-11"><a href="#作用-11" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中，指定区间内的成员。<br>其中成员的位置按 <code>score</code> 值递减(从大到小)来排列。<br>具有相同 <code>score</code> 值的成员按字典序的逆序(<a href="http://en.wikipedia.org/wiki/Lexicographical_order#Reverse_lexicographic_order" target="_blank" rel="noopener">reverse lexicographical order</a>)排列。<br>除了成员按 <code>score</code> 值递减的次序排列这一点外， <a href="http://redisdoc.com/sorted_set/zrevrange.html#zrevrange" target="_blank" rel="noopener">ZREVRANGE</a> 命令的其他方面和 <a href="http://redisdoc.com/sorted_set/zrange.html#zrange" target="_blank" rel="noopener">ZRANGE</a> 命令一样。<h3 id="时间复杂度-11"><a href="#时间复杂度-11" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数，而 <code>M</code> 为结果集的基数。<h3 id="返回值-11"><a href="#返回值-11" class="headerlink" title="返回值"></a>返回值</h3>指定区间内，带有 <code>score</code> 值(可选)的有序集成员的列表。<h3 id="示例图片-11"><a href="#示例图片-11" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548212927373-49b25b90-326d-4dda-8f79-213c43f59a38.png#align=left&amp;display=inline&amp;height=297&amp;linkTarget=_blank&amp;name=zrevrange.png&amp;originHeight=297&amp;originWidth=610&amp;size=12348&amp;width=610" alt="zrevrange.png"></li>
+</ul>
+<hr>
+<h2 id="ZREVRANGEBYSCORE"><a href="#ZREVRANGEBYSCORE" class="headerlink" title="ZREVRANGEBYSCORE"></a>ZREVRANGEBYSCORE</h2><h3 id="语法-12"><a href="#语法-12" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREVRANGEBYSCORE key max min [WITHSCORES] [LIMIT offset count]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-12"><a href="#参数说明-12" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>max    有序集合中score的最小取值</li>
+<li>min    有序集合中score的最大取值</li>
+<li>[WITHSCORES]    结果集中是否返回有序集合成员对应的score值</li>
+<li>[LIMIT offset count]    是否对返回的结果集进行数量限制<h3 id="作用-12"><a href="#作用-12" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中， <code>score</code> 值介于 <code>max</code> 和 <code>min</code> 之间(默认包括等于 <code>max</code> 或 <code>min</code> )的所有的成员。有序集成员按 <code>score</code> 值递减(从大到小)的次序排列。<br>具有相同 <code>score</code> 值的成员按字典序的逆序(<a href="http://en.wikipedia.org/wiki/Lexicographical_order" target="_blank" rel="noopener">reverse lexicographical order</a> )排列。<br>除了成员按 <code>score</code> 值递减的次序排列这一点外， <a href="http://redisdoc.com/sorted_set/zrevrangebyscore.html#zrevrangebyscore" target="_blank" rel="noopener">ZREVRANGEBYSCORE</a> 命令的其他方面和 <a href="http://redisdoc.com/sorted_set/zrangebyscore.html#zrangebyscore" target="_blank" rel="noopener">ZRANGEBYSCORE</a> 命令一样。<h3 id="时间复杂度-12"><a href="#时间复杂度-12" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， <code>N</code> 为有序集的基数， <code>M</code> 为结果集的基数。<h3 id="返回值-12"><a href="#返回值-12" class="headerlink" title="返回值"></a>返回值</h3>指定区间内，带有 <code>score</code> 值(可选)的有序集成员的列表。<h3 id="示例图片-12"><a href="#示例图片-12" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213446201-cf42c9d8-178c-48d5-920d-792ed382a21c.png#align=left&amp;display=inline&amp;height=211&amp;linkTarget=_blank&amp;name=zrevrangebyscore.png&amp;originHeight=211&amp;originWidth=655&amp;size=10922&amp;width=655" alt="zrevrangebyscore.png"></li>
+</ul>
+<hr>
+<h2 id="ZREVRANK"><a href="#ZREVRANK" class="headerlink" title="ZREVRANK"></a>ZREVRANK</h2><h3 id="语法-13"><a href="#语法-13" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZREVRANK key member</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-13"><a href="#参数说明-13" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>member    有序集合中要查询的成员<h3 id="作用-13"><a href="#作用-13" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中成员 <code>member</code> 的排名。其中有序集成员按 <code>score</code> 值递减(从大到小)排序。<br>排名以 <code>0</code> 为底，也就是说， <code>score</code> 值最大的成员排名为 <code>0</code> 。<br>使用 <a href="http://redisdoc.com/sorted_set/zrank.html#zrank" target="_blank" rel="noopener">ZRANK</a> 命令可以获得成员按 <code>score</code> 值递增(从小到大)排列的排名。<h3 id="时间复杂度-13"><a href="#时间复杂度-13" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N))<h3 id="返回值-13"><a href="#返回值-13" class="headerlink" title="返回值"></a>返回值</h3>如果 <code>member</code> 是有序集 <code>key</code> 的成员，返回 <code>member</code> 的排名。<br>如果 <code>member</code> 不是有序集 <code>key</code> 的成员，返回 <code>nil</code> 。<h3 id="示例图片-13"><a href="#示例图片-13" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213577873-10c78be0-eb88-499e-9172-61de6b9c01ab.png#align=left&amp;display=inline&amp;height=224&amp;linkTarget=_blank&amp;name=zrevrank.png&amp;originHeight=224&amp;originWidth=679&amp;size=12288&amp;width=679" alt="zrevrank.png"></li>
+</ul>
+<hr>
+<h2 id="ZSCORE"><a href="#ZSCORE" class="headerlink" title="ZSCORE"></a>ZSCORE</h2><h3 id="语法-14"><a href="#语法-14" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZSCORE key member</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-14"><a href="#参数说明-14" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>member    要查询的有序集合中的成员<h3 id="作用-14"><a href="#作用-14" class="headerlink" title="作用"></a>作用</h3>返回有序集 <code>key</code> 中，成员 <code>member</code> 的 <code>score</code> 值。<br>如果 <code>member</code> 元素不是有序集 <code>key</code> 的成员，或 <code>key</code> 不存在，返回 <code>nil</code> 。<h3 id="时间复杂度-14"><a href="#时间复杂度-14" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(1)<h3 id="返回值-14"><a href="#返回值-14" class="headerlink" title="返回值"></a>返回值</h3><code>member</code> 成员的 <code>score</code> 值，以字符串形式表示。<h3 id="示例图片-14"><a href="#示例图片-14" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548213780395-01149e73-4c86-4c1c-bcf5-5f06fe31467f.png#align=left&amp;display=inline&amp;height=284&amp;linkTarget=_blank&amp;name=zscore.png&amp;originHeight=284&amp;originWidth=621&amp;size=15488&amp;width=621" alt="zscore.png"></li>
+</ul>
+<hr>
+<h2 id="ZUNIONSTORE"><a href="#ZUNIONSTORE" class="headerlink" title="ZUNIONSTORE"></a>ZUNIONSTORE</h2><h3 id="语法-15"><a href="#语法-15" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-15"><a href="#参数说明-15" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>destination    结果集保存的目标集合</li>
+<li>numkeys    操作集合的数量</li>
+<li>key    要操作的有序集合的键名称</li>
+<li>[key …]    多个有序集合的键名称</li>
+<li>[WEIGHTS weight [weight …]]    是否在聚合之前将有序集合的成员score值乘对应的乘法因子，默认为1</li>
+<li>[AGGREGATE SUM|MIN|MAX]    结果并集的聚合方式<h3 id="作用-15"><a href="#作用-15" class="headerlink" title="作用"></a>作用</h3>计算给定的一个或多个有序集的并集，其中给定 <code>key</code> 的数量必须以 <code>numkeys</code> 参数指定，并将该并集(结果集)储存到 <code>destination</code> 。<br>默认情况下，结果集中某个成员的 <code>score</code> 值是所有给定集下该成员 <code>score</code> 值之 _和_ 。<h4 id="WEIGHTS"><a href="#WEIGHTS" class="headerlink" title="WEIGHTS"></a><strong>WEIGHTS</strong></h4>使用 <code>WEIGHTS</code> 选项，你可以为 _每个_分别_ 指定一个乘法因子(multiplication factor)，每个给定有序集的所有成员的 <code>score</code> 值在传递给聚合函数(aggregation function)之前都要先乘以该有序集的因子。<br>如果没有指定 <code>WEIGHTS</code> 选项，乘法因子默认设置为 <code>1</code> 。<br><strong>AGGREGATE</strong><br>使用 <code>AGGREGATE</code> 选项，你可以指定并集的结果集的聚合方式。<br>默认使用的参数 <code>SUM</code> ，可以将所有集合中某个成员的 <code>score</code> 值之 _和_ 作为结果集中该成员的 <code>score</code> 值；使用参数 <code>MIN</code> ，可以将所有集合中某个成员的 _最小_ <code>score</code> 值作为结果集中该成员的 <code>score</code> 值；而参数 <code>MAX</code> 则是将所有集合中某个成员的 _最大_ <code>score</code> 值作为结果集中该成员的 <code>score</code> 值。<h3 id="时间复杂度-15"><a href="#时间复杂度-15" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(N)+O(M log(M))， <code>N</code> 为给定有序集基数的总和， <code>M</code> 为结果集的基数。<h3 id="返回值-15"><a href="#返回值-15" class="headerlink" title="返回值"></a>返回值</h3>保存到 <code>destination</code> 的结果集的基数。<h3 id="示例图片-15"><a href="#示例图片-15" class="headerlink" title="示例图片"></a>示例图片</h3></li>
+<li>查询成员成绩之和</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214135873-ce165051-72c0-4897-a997-97cf47475049.png#align=left&amp;display=inline&amp;height=491&amp;linkTarget=_blank&amp;name=zunionscore.png&amp;originHeight=521&amp;originWidth=791&amp;size=27204&amp;width=746" alt="zunionscore.png"></p>
+<ul>
+<li>查询成员的优秀成绩</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214339905-ddcacae9-1b35-4ea4-9bab-14d2928aed6f.png#align=left&amp;display=inline&amp;height=394&amp;linkTarget=_blank&amp;name=zunionscore%20with%20max.png&amp;originHeight=466&amp;originWidth=883&amp;size=25719&amp;width=746" alt="zunionscore with max.png"></p>
+<ul>
+<li>查询成员的较差成绩</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214363681-3403a7a5-02b4-45ee-8ad5-30fd6e18b452.png#align=left&amp;display=inline&amp;height=409&amp;linkTarget=_blank&amp;name=zunionscore%20with%20min.png&amp;originHeight=465&amp;originWidth=848&amp;size=25867&amp;width=746" alt="zunionscore with min.png"></p>
+<ul>
+<li>使用乘法因子完成员工的年终奖的计算</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214396973-b7272d1a-ab44-45f8-9a4d-cce2b4355690.png#align=left&amp;display=inline&amp;height=420&amp;linkTarget=_blank&amp;name=zunionscore%20with%20weights.png&amp;originHeight=494&amp;originWidth=877&amp;size=29392&amp;width=746" alt="zunionscore with weights.png"></p>
+<ul>
+<li>计算出员工在每个项目拿到的年终奖的较大值与较小值</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214458995-3af31eb3-6d07-4c63-b409-7aa1b364e56a.png#align=left&amp;display=inline&amp;height=608&amp;linkTarget=_blank&amp;name=zunionscore%20with%20weights%20and%20max%20min.png&amp;originHeight=625&amp;originWidth=767&amp;size=34146&amp;width=746" alt="zunionscore with weights and max min.png"></p>
+<hr>
+<h2 id="ZINTERSTORE"><a href="#ZINTERSTORE" class="headerlink" title="ZINTERSTORE"></a>ZINTERSTORE</h2><h3 id="语法-16"><a href="#语法-16" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-16"><a href="#参数说明-16" class="headerlink" title="参数说明"></a>参数说明</h4><p>与ZUNIONSTORE参数意义一致</p>
+<h3 id="作用-16"><a href="#作用-16" class="headerlink" title="作用"></a>作用</h3><p>计算给定的一个或多个有序集的交集，其中给定 <code>key</code> 的数量必须以 <code>numkeys</code> 参数指定，并将该交集(结果集)储存到 <code>destination</code> 。<br>默认情况下，结果集中某个成员的 <code>score</code> 值是所有给定集下该成员 <code>score</code> 值之和.</p>
+<h3 id="时间复杂度-16"><a href="#时间复杂度-16" class="headerlink" title="时间复杂度"></a>时间复杂度</h3><p>O(N<em>K)+O(M</em>log(M))， <code>N</code> 为给定 <code>key</code> 中基数最小的有序集， <code>K</code> 为给定有序集的数量， <code>M</code> 为结果集的基数。</p>
+<h3 id="返回值-16"><a href="#返回值-16" class="headerlink" title="返回值"></a>返回值</h3><p>保存到 <code>destination</code> 的结果集的基数。</p>
+<h3 id="示例图片-16"><a href="#示例图片-16" class="headerlink" title="示例图片"></a>示例图片</h3><p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214777821-c2dc1489-09d3-4a1c-bec5-c55d365220eb.png#align=left&amp;display=inline&amp;height=393&amp;linkTarget=_blank&amp;name=zinter.png&amp;originHeight=461&amp;originWidth=874&amp;size=22672&amp;width=746" alt="zinter.png"></p>
+<ul>
+<li><br></li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548214814800-937a47b3-9221-4aa7-b5fc-5bc4f1a8f6d3.png#align=left&amp;display=inline&amp;height=550&amp;linkTarget=_blank&amp;name=zinter%20with%20max%20min.png&amp;originHeight=629&amp;originWidth=853&amp;size=29984&amp;width=746" alt="zinter with max min.png"></p>
+<hr>
+<h2 id="ZRANGEBYLEX"><a href="#ZRANGEBYLEX" class="headerlink" title="ZRANGEBYLEX"></a>ZRANGEBYLEX</h2><h3 id="语法-17"><a href="#语法-17" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZRANGEBYLEX key min max [LIMIT offset count]</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-17"><a href="#参数说明-17" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>min    有序集合成员下标的起始值</li>
+<li>max    有序集合成员下标的结束值</li>
+<li>[LIMIT offset count]    结果集限制<h3 id="作用-17"><a href="#作用-17" class="headerlink" title="作用"></a>作用</h3>当有序集合的所有成员都具有相同的分值时， 有序集合的元素会根据成员的字典序（lexicographical ordering）来进行排序， 而这个命令则可以返回给定的有序集合键 <code>key</code> 中， 值介于 <code>min</code> 和 <code>max</code> 之间的成员。<br>如果有序集合里面的成员带有不同的分值， 那么命令返回的结果是未指定的（unspecified）。<br>命令会使用 C 语言的 <code>memcmp()</code> 函数， 对集合中的每个成员进行逐个字节的对比（byte-by-byte compare）， 并按照从低到高的顺序， 返回排序后的集合成员。 如果两个字符串有一部分内容是相同的话， 那么命令会认为较长的字符串比较短的字符串要大。<br>可选的 <code>LIMIT offset count</code> 参数用于获取指定范围内的匹配元素 （就像 SQL 中的 <code>SELECT LIMIT offset count</code> 语句）。 需要注意的一点是， 如果 <code>offset</code> 参数的值非常大的话， 那么命令在返回结果之前， 需要先遍历至 <code>offset</code> 所指定的位置， 这个操作会为命令加上最多 O(N) 复杂度。<h4 id="指定范围区间"><a href="#指定范围区间" class="headerlink" title="指定范围区间"></a>指定范围区间</h4>合法的 <code>min</code> 和 <code>max</code> 参数必须包含 <code>(</code> 或者 <code>[</code> ， 其中 <code>(</code> 表示开区间（指定的值不会被包含在范围之内）， 而 <code>[</code> 则表示闭区间（指定的值会被包含在范围之内）。<br>特殊值 <code>+</code> 和 <code>-</code> 在 <code>min</code> 参数以及 <code>max</code> 参数中具有特殊的意义， 其中 <code>+</code> 表示正无限， 而 <code>-</code> 表示负无限。 因此， 向一个所有成员的分值都相同的有序集合发送命令 <code>ZRANGEBYLEX &lt;zset&gt; - +</code> ， 命令将返回有序集合中的所有元素。<h3 id="时间复杂度-17"><a href="#时间复杂度-17" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N)+M)， 其中 N 为有序集合的元素数量， 而 M 则是命令返回的元素数量。 如果 M 是一个常数（比如说，用户总是使用 <code>LIMIT</code> 参数来返回最先的 10 个元素）， 那么命令的复杂度也可以看作是 O(log(N)) 。<h3 id="返回值-17"><a href="#返回值-17" class="headerlink" title="返回值"></a>返回值</h3>数组回复：一个列表，列表里面包含了有序集合在指定范围内的成员。<h3 id="示例图片-17"><a href="#示例图片-17" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548215079415-882f04ad-0206-40b5-a476-33f3289b25aa.png#align=left&amp;display=inline&amp;height=508&amp;linkTarget=_blank&amp;name=zrangebylex.png&amp;originHeight=557&amp;originWidth=818&amp;size=27035&amp;width=746" alt="zrangebylex.png"></li>
+</ul>
+<hr>
+<h2 id="ZLEXCOUNT"><a href="#ZLEXCOUNT" class="headerlink" title="ZLEXCOUNT"></a>ZLEXCOUNT</h2><h3 id="语法-18"><a href="#语法-18" class="headerlink" title="语法"></a>语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZLEXCOUNT key min max</span><br></pre></td></tr></table></figure>
+<h4 id="参数说明-18"><a href="#参数说明-18" class="headerlink" title="参数说明"></a>参数说明</h4><ul>
+<li>key    有序集合的键名称</li>
+<li>min    有序集合的成员下标起始值</li>
+<li>max    有序集合的成员下标结束值<h3 id="作用-18"><a href="#作用-18" class="headerlink" title="作用"></a>作用</h3>对于一个所有成员的分值都相同的有序集合键 <code>key</code> 来说， 这个命令会返回该集合中， 成员介于 <code>min</code> 和 <code>max</code> 范围内的元素数量。<h3 id="时间复杂度-18"><a href="#时间复杂度-18" class="headerlink" title="时间复杂度"></a>时间复杂度</h3>O(log(N))，其中 N 为有序集合包含的元素数量。<h3 id="返回值-18"><a href="#返回值-18" class="headerlink" title="返回值"></a>返回值</h3>整数回复：指定范围内的元素数量。<h3 id="示例图片-18"><a href="#示例图片-18" class="headerlink" title="示例图片"></a>示例图片</h3><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548215227558-230a2b02-fbe4-4d73-997a-9f42d565481e.png#align=left&amp;display=inline&amp;height=180&amp;linkTarget=_blank&amp;name=zlexcount.png&amp;originHeight=180&amp;originWidth=622&amp;size=10625&amp;width=622" alt="zlexcount.png"></li>
+</ul>
+<hr>
+<h2 id="实战案列"><a href="#实战案列" class="headerlink" title="实战案列"></a>实战案列</h2><h3 id="案列说明"><a href="#案列说明" class="headerlink" title="案列说明"></a>案列说明</h3><p>学校进行期末考试完成后部分科目成绩公布如下</p>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>英语</th>
+<th>数学</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Alice</td>
+<td>89</td>
+<td>97</td>
+</tr>
+<tr>
+<td>brown</td>
+<td>91</td>
+<td>68</td>
+</tr>
+<tr>
+<td>curry</td>
+<td>76</td>
+<td>99</td>
+</tr>
+<tr>
+<td>danny</td>
+<td>98</td>
+<td>97</td>
+</tr>
+<tr>
+<td>jhon</td>
+<td>89</td>
+<td>97</td>
+</tr>
+<tr>
+<td>klay</td>
+<td>79</td>
+<td>68</td>
+</tr>
+</tbody>
+</table>
+<p><strong>要求：</strong></p>
+<ul>
+<li>将学生的科目成绩分别存储在不同的有序集合中；</li>
+<li>成绩校验后发现curry的英文成绩少计算了13分，在学生的英文成绩记录中进行更正；</li>
+<li>计算英语成绩在90分以上的同学数量；</li>
+<li>列出数学成绩低于80分的同学，并要求知道他们的具体分数；</li>
+<li>将英语成绩按照从低到高的排序方式进行排列，然后将数学成绩按照从高到底的排序方式排列；</li>
+<li>计算所有学生的英语与数学成绩的总和，并且需要根据成绩进行排名；</li>
+<li>查询klay的数学成绩</li>
+<li>danny英文考试作弊，移出本次的成绩清单，并重新计算学生总成绩与排名；</li>
+<li>查询Alice的总成绩的班级排名</li>
+</ul>
+<h4 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h4><ul>
+<li>使用<strong>ZADD</strong>进行有序集合新增</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224405615-cba8371c-1bfc-403f-8486-aa8bf308f465.png#align=left&amp;display=inline&amp;height=518&amp;linkTarget=_blank&amp;name=1.png&amp;originHeight=518&amp;originWidth=743&amp;size=21062&amp;width=743" alt="1.png"></p>
+<ul>
+<li>使用 <strong>zincrby </strong>进行键的score值的变更 </li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224419988-b00a4ec5-c45b-4c61-a5ae-83f04954f918.png#align=left&amp;display=inline&amp;height=247&amp;linkTarget=_blank&amp;name=update%20curry%20English.png&amp;originHeight=247&amp;originWidth=568&amp;size=8784&amp;width=568" alt="update curry English.png"></p>
+<ul>
+<li>使用 <strong>zcount </strong>进行有序集合根据score值筛选并统计member数量</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224428919-7cf38bd6-beee-4f9f-abdf-0fc5f86e0646.png#align=left&amp;display=inline&amp;height=235&amp;linkTarget=_blank&amp;name=3.png&amp;originHeight=235&amp;originWidth=494&amp;size=7822&amp;width=494" alt="3.png"></p>
+<ul>
+<li>使用 <strong>zrangebyscore </strong>进行成绩筛选<br><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224439087-64060b18-1bd9-41fd-89d8-8caf6fcc4462.png#align=left&amp;display=inline&amp;height=299&amp;linkTarget=_blank&amp;name=4.png&amp;originHeight=299&amp;originWidth=570&amp;size=10658&amp;width=570" alt="4.png"></li>
+<li><strong>zrevrange</strong>将有序集合按照score倒序排列</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224603426-24a46f07-f296-4d03-a180-21df9e3794d0.png#align=left&amp;display=inline&amp;height=418&amp;linkTarget=_blank&amp;name=5.png&amp;originHeight=418&amp;originWidth=579&amp;size=13222&amp;width=579" alt="5.png"></p>
+<ul>
+<li>使用<strong>zunionscore</strong>求出学生的成绩总和</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224657354-8d08b89d-5801-4052-bf54-4e3380eaf785.png#align=left&amp;display=inline&amp;height=252&amp;linkTarget=_blank&amp;name=6.png&amp;originHeight=252&amp;originWidth=532&amp;size=9078&amp;width=532" alt="6.png"></p>
+<ul>
+<li>使用<strong>zscore</strong>查询member的score值</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224723720-78613ec4-f226-432a-8377-a43c514acd55.png#align=left&amp;display=inline&amp;height=60&amp;linkTarget=_blank&amp;name=7.png&amp;originHeight=60&amp;originWidth=413&amp;size=2552&amp;width=413" alt="7.png"></p>
+<ul>
+<li><strong>zrem</strong>删除有序集合中的member</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224777107-9de35135-5906-484a-8660-68198f73d2fa.png#align=left&amp;display=inline&amp;height=199&amp;linkTarget=_blank&amp;name=8.png&amp;originHeight=199&amp;originWidth=427&amp;size=6948&amp;width=427" alt="8.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224804009-5bc73e58-5e47-422c-8769-1b12f84d8217.png#align=left&amp;display=inline&amp;height=197&amp;linkTarget=_blank&amp;name=8%EF%BC%882%EF%BC%89.png&amp;originHeight=197&amp;originWidth=520&amp;size=8891&amp;width=520" alt="8（2）.png"></p>
+<ul>
+<li><strong>zrank</strong>查询元素在有序集合中的排名</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2019/png/248005/1548224834011-54072867-cd8c-4ed3-a3d7-a71b8c904374.png#align=left&amp;display=inline&amp;height=164&amp;linkTarget=_blank&amp;name=9.png&amp;originHeight=164&amp;originWidth=432&amp;size=6017&amp;width=432" alt="9.png"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"># redis</a>
+          
+            <a href="/tags/缓存/" rel="tag"># 缓存</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar_4.png" alt="黑与白">
+            
+              <p class="site-author-name" itemprop="name">黑与白</p>
+              <p class="site-description motion-element" itemprop="description">Trust Commitment Care</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">1</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                    <span class="site-state-item-count">1</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/geekerhub" title="GitHub &rarr; https://github.com/geekerhub" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://twitter.com/yourname" title="Twitter &rarr; https://twitter.com/yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.csdn.net/" title="https://www.csdn.net/" rel="noopener" target="_blank">CSDN</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://gitbook.cn/" title="https://gitbook.cn/" rel="noopener" target="_blank">GitChat</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://segmentfault.com/" title="https://segmentfault.com/" rel="noopener" target="_blank">Segmentfault</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.yuque.com" title="https://www.yuque.com" rel="noopener" target="_blank">语雀</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SortedSet"><span class="nav-number">1.</span> <span class="nav-text">SortedSet</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ZADD"><span class="nav-number">1.1.</span> <span class="nav-text">ZADD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法"><span class="nav-number">1.1.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用"><span class="nav-number">1.1.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度"><span class="nav-number">1.1.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值"><span class="nav-number">1.1.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片"><span class="nav-number">1.1.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZCARD"><span class="nav-number">1.2.</span> <span class="nav-text">ZCARD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-1"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-1"><span class="nav-number">1.2.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-1"><span class="nav-number">1.2.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-1"><span class="nav-number">1.2.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZCOUNT"><span class="nav-number">1.3.</span> <span class="nav-text">ZCOUNT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-2"><span class="nav-number">1.3.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-2"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-2"><span class="nav-number">1.3.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-2"><span class="nav-number">1.3.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-2"><span class="nav-number">1.3.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-2"><span class="nav-number">1.3.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZINCRBY"><span class="nav-number">1.4.</span> <span class="nav-text">ZINCRBY</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-3"><span class="nav-number">1.4.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-3"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-3"><span class="nav-number">1.4.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-3"><span class="nav-number">1.4.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-3"><span class="nav-number">1.4.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-3"><span class="nav-number">1.4.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZRANGE"><span class="nav-number">1.5.</span> <span class="nav-text">ZRANGE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-4"><span class="nav-number">1.5.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-4"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-4"><span class="nav-number">1.5.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-4"><span class="nav-number">1.5.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-4"><span class="nav-number">1.5.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-4"><span class="nav-number">1.5.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZRANGEBYSCORE"><span class="nav-number">1.6.</span> <span class="nav-text">ZRANGEBYSCORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-5"><span class="nav-number">1.6.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-5"><span class="nav-number">1.6.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-5"><span class="nav-number">1.6.2.</span> <span class="nav-text">作用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#区间"><span class="nav-number">1.6.2.1.</span> <span class="nav-text">区间</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-5"><span class="nav-number">1.6.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-5"><span class="nav-number">1.6.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-5"><span class="nav-number">1.6.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZRANK"><span class="nav-number">1.7.</span> <span class="nav-text">ZRANK</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-6"><span class="nav-number">1.7.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-6"><span class="nav-number">1.7.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-6"><span class="nav-number">1.7.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-6"><span class="nav-number">1.7.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-6"><span class="nav-number">1.7.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-6"><span class="nav-number">1.7.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREM"><span class="nav-number">1.8.</span> <span class="nav-text">ZREM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-7"><span class="nav-number">1.8.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-7"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-7"><span class="nav-number">1.8.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-7"><span class="nav-number">1.8.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-7"><span class="nav-number">1.8.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-7"><span class="nav-number">1.8.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREMRANGEBYRANK"><span class="nav-number">1.9.</span> <span class="nav-text">ZREMRANGEBYRANK</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-8"><span class="nav-number">1.9.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-8"><span class="nav-number">1.9.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-8"><span class="nav-number">1.9.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-8"><span class="nav-number">1.9.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-8"><span class="nav-number">1.9.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-8"><span class="nav-number">1.9.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREMRANGEBYSCORE"><span class="nav-number">1.10.</span> <span class="nav-text">ZREMRANGEBYSCORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-9"><span class="nav-number">1.10.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-9"><span class="nav-number">1.10.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-9"><span class="nav-number">1.10.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-9"><span class="nav-number">1.10.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-9"><span class="nav-number">1.10.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-9"><span class="nav-number">1.10.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREMRANGEBYLEX"><span class="nav-number">1.11.</span> <span class="nav-text">ZREMRANGEBYLEX</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-10"><span class="nav-number">1.11.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-10"><span class="nav-number">1.11.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-10"><span class="nav-number">1.11.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-10"><span class="nav-number">1.11.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-10"><span class="nav-number">1.11.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-10"><span class="nav-number">1.11.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREVRANGE"><span class="nav-number">1.12.</span> <span class="nav-text">ZREVRANGE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-11"><span class="nav-number">1.12.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-11"><span class="nav-number">1.12.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-11"><span class="nav-number">1.12.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-11"><span class="nav-number">1.12.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-11"><span class="nav-number">1.12.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-11"><span class="nav-number">1.12.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREVRANGEBYSCORE"><span class="nav-number">1.13.</span> <span class="nav-text">ZREVRANGEBYSCORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-12"><span class="nav-number">1.13.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-12"><span class="nav-number">1.13.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-12"><span class="nav-number">1.13.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-12"><span class="nav-number">1.13.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-12"><span class="nav-number">1.13.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-12"><span class="nav-number">1.13.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZREVRANK"><span class="nav-number">1.14.</span> <span class="nav-text">ZREVRANK</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-13"><span class="nav-number">1.14.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-13"><span class="nav-number">1.14.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-13"><span class="nav-number">1.14.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-13"><span class="nav-number">1.14.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-13"><span class="nav-number">1.14.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-13"><span class="nav-number">1.14.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZSCORE"><span class="nav-number">1.15.</span> <span class="nav-text">ZSCORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-14"><span class="nav-number">1.15.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-14"><span class="nav-number">1.15.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-14"><span class="nav-number">1.15.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-14"><span class="nav-number">1.15.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-14"><span class="nav-number">1.15.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-14"><span class="nav-number">1.15.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZUNIONSTORE"><span class="nav-number">1.16.</span> <span class="nav-text">ZUNIONSTORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-15"><span class="nav-number">1.16.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-15"><span class="nav-number">1.16.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-15"><span class="nav-number">1.16.2.</span> <span class="nav-text">作用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#WEIGHTS"><span class="nav-number">1.16.2.1.</span> <span class="nav-text">WEIGHTS</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-15"><span class="nav-number">1.16.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-15"><span class="nav-number">1.16.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-15"><span class="nav-number">1.16.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZINTERSTORE"><span class="nav-number">1.17.</span> <span class="nav-text">ZINTERSTORE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-16"><span class="nav-number">1.17.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-16"><span class="nav-number">1.17.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-16"><span class="nav-number">1.17.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-16"><span class="nav-number">1.17.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-16"><span class="nav-number">1.17.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-16"><span class="nav-number">1.17.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZRANGEBYLEX"><span class="nav-number">1.18.</span> <span class="nav-text">ZRANGEBYLEX</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-17"><span class="nav-number">1.18.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-17"><span class="nav-number">1.18.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-17"><span class="nav-number">1.18.2.</span> <span class="nav-text">作用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指定范围区间"><span class="nav-number">1.18.2.1.</span> <span class="nav-text">指定范围区间</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-17"><span class="nav-number">1.18.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-17"><span class="nav-number">1.18.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-17"><span class="nav-number">1.18.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZLEXCOUNT"><span class="nav-number">1.19.</span> <span class="nav-text">ZLEXCOUNT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-18"><span class="nav-number">1.19.1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数说明-18"><span class="nav-number">1.19.1.1.</span> <span class="nav-text">参数说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#作用-18"><span class="nav-number">1.19.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间复杂度-18"><span class="nav-number">1.19.3.</span> <span class="nav-text">时间复杂度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回值-18"><span class="nav-number">1.19.4.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#示例图片-18"><span class="nav-number">1.19.5.</span> <span class="nav-text">示例图片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实战案列"><span class="nav-number">1.20.</span> <span class="nav-text">实战案列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#案列说明"><span class="nav-number">1.20.1.</span> <span class="nav-text">案列说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#解题"><span class="nav-number">1.20.1.1.</span> <span class="nav-text">解题</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">  <a href="http://www.miitbeian.gov.cn" rel="noopener" target="_blank">浙ICP备18022220号 </a>&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">黑与白</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.7.0"></script>
+
+  <script src="/js/src/motion.js?v=6.7.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/affix.js?v=6.7.0"></script>
+
+  <script src="/js/src/schemes/pisces.js?v=6.7.0"></script>
+
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.7.0"></script>
+<script src="/js/src/post-details.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function(i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap');
+      $(e).after($wrap);
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function(e) {
+        var code = $(this).parent().find('.code').find('.line').map(function(i, e) {
+          return $(e).text();
+        }).toArray().join('\n');
+        var ta = document.createElement('textarea');
+        var range = document.createRange(); //For Chrome
+        var sel = window.getSelection(); //For Chrome
+        var yPosition = window.pageYOffset || document.documentElement.scrollTop;
+        ta.style.top = yPosition + 'px'; //Prevent page scroll
+        ta.style.position = 'absolute';
+        ta.style.opacity = '0';
+        ta.value = code;
+        ta.textContent = code; //For FireFox
+        ta.contentEditable = true;
+        ta.readOnly = false;
+        document.body.appendChild(ta);
+        range.selectNode(ta);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        ta.setSelectionRange(0, code.length);
+        var result = document.execCommand('copy');
+        
+          if (result) $(this).text('复制成功');
+          else $(this).text('复制失败');
+        
+        ta.blur(); //For iOS
+        $(this).blur();
+      })).on('mouseleave', function(e) {
+        var $b = $(this).find('.copy-btn');
+        setTimeout(function() {
+          $b.text('复制');
+        }, 300);
+      }).append(e);
+    })
+  </script>
+
+
+  
+
+</body>
+</html>
