@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=6.7.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="mask-icon" href="/images/favicon_64.ico?v=6.7.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.7.0',
+    sidebar: {"position":"left","Pisces | Gemini":380,"width":300,"display":"post","offset":13,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="为什么需要进行持久化操作Redis是纯内存操作，而内存中的内容在发生操作系统宕机或者进程突然退出等情况时会发生丢失，所以需要对Redis服务器中的内容进行持久化操作，将内存中的数据持久化到磁盘中，这样在下次Redis服务启动之前可以利用持久化的文件进行数据恢复，尽可能保证生产数据的完整性。">
+<meta name="keywords" content="redis,缓存,持久化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis持久化">
+<meta property="og:url" content="http://yoursite.com/2019/03/03/nosql/redis/持久化/Redis持久化/index.html">
+<meta property="og:site_name" content="GeekerHub">
+<meta property="og:description" content="为什么需要进行持久化操作Redis是纯内存操作，而内存中的内容在发生操作系统宕机或者进程突然退出等情况时会发生丢失，所以需要对Redis服务器中的内容进行持久化操作，将内存中的数据持久化到磁盘中，这样在下次Redis服务启动之前可以利用持久化的文件进行数据恢复，尽可能保证生产数据的完整性。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-10-27T13:57:52.797Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis持久化">
+<meta name="twitter:description" content="为什么需要进行持久化操作Redis是纯内存操作，而内存中的内容在发生操作系统宕机或者进程突然退出等情况时会发生丢失，所以需要对Redis服务器中的内容进行持久化操作，将内存中的数据持久化到磁盘中，这样在下次Redis服务启动之前可以利用持久化的文件进行数据恢复，尽可能保证生产数据的完整性。">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/03/nosql/redis/持久化/Redis持久化/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Redis持久化 | GeekerHub</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GeekerHub</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">信任 承诺 关怀</h1>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+  
+  
+  
+  
+
+  
+
+  <a href="https://github.com/geekeritcom" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" style="fill: #222; color: #fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/03/nosql/redis/持久化/Redis持久化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Aaryn">
+      <meta itemprop="description" content="Trust Commitment Care">
+      <meta itemprop="image" content="/images/avatar_4.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GeekerHub">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Redis持久化
+
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-03 17:30:09" itemprop="dateCreated datePublished" datetime="2019-03-03T17:30:09+08:00">2019-03-03</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编程/" itemprop="url" rel="index"><span itemprop="name">编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">4.4k</span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="为什么需要进行持久化操作"><a href="#为什么需要进行持久化操作" class="headerlink" title="为什么需要进行持久化操作"></a>为什么需要进行持久化操作</h2><p><code>Redis</code>是纯内存操作，而内存中的内容在发生操作系统宕机或者进程突然退出等情况时会发生丢失，所以需要对<code>Redis</code>服务器中的内容进行持久化操作，将内存中的数据持久化到磁盘中，这样在下次<code>Redis</code>服务启动之前可以利用持久化的文件进行数据恢复，尽可能保证生产数据的完整性。</p>
+<a id="more"></a>
+<hr>
+<h2 id="什么情况下需要开启Redis持久化"><a href="#什么情况下需要开启Redis持久化" class="headerlink" title="什么情况下需要开启Redis持久化"></a>什么情况下需要开启Redis持久化</h2><p>如果只是使用Redis缓存简单的非重要的业务数据，个人认为完全没有必要开启Redis的持久化功能 ，因为只有Redis中的业务数据缺失重要时开启持久化才是有意义的。</p>
+<hr>
+<h2 id="持久化方式"><a href="#持久化方式" class="headerlink" title="持久化方式"></a>持久化方式</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p><code>Redis</code> 支持 <code>RDB</code>和 <code>AOF</code> 两种持久化机制。</p>
+<h3 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h3><h4 id="什么是RDB"><a href="#什么是RDB" class="headerlink" title="什么是RDB"></a>什么是RDB</h4><p><code>RDB</code>持久化是把当前进程数据生成快照保存到硬盘的过程，触发 <code>RDB</code>持久化过程分为手动触发和自动触发。</p>
+<h4 id="RDB工作流程"><a href="#RDB工作流程" class="headerlink" title="RDB工作流程"></a>RDB工作流程</h4><p>待补充流程图</p>
+<p>1）执行 bgsave 命令，Redis 父进程判断当前是否存在正在执行的子进程，如 RDB/AOF 子进程，如果存在 bgsave 命令直接返回。</p>
+<p>2）父进程执行 fork 操作创建子进程，fork 操作过程中父进程会阻塞，通过 info stats 命令查看 latest_fork_usec 选项，可以获取最近一个 fork 操作的耗时，单位为微秒。</p>
+<p>3）父进程 fork 完成后，bgsave 命令返回“Background saving started”信息并不再阻塞父进程，可以继续响应其他命令。</p>
+<p>4）子进程创建 RDB 文件，根据父进程内存生成临时快照文件，完成后对原有文件进行原子替换。执行 lastsave 命令可以获取最后一次生成 RDB 的时间，对应 info 统计的 rdb_last_save_time 选项。</p>
+<p>5）进程发送信号给父进程表示完成，父进程更新统计信息，具体见 info Persistence 下的 rdb_* 相关选项。</p>
+<p>在指定时间间隔内将内存中的数据集快照到磁盘中，恢复时将快照文件直接读取到内存中</p>
+<p>redis会单独fork一个子进程来进行持久化，会先将数据写入到一个临时文件中，待持久化过程全部结束后再用这个临时文件替换上次持久化的文件。整个过程中不进行任何的IO操作，确保了极高的性能。</p>
+<h4 id="RDB持久化的优点"><a href="#RDB持久化的优点" class="headerlink" title="RDB持久化的优点"></a>RDB持久化的优点</h4><h5 id="适合全量备份"><a href="#适合全量备份" class="headerlink" title="适合全量备份"></a>适合全量备份</h5><p><code>RDB</code>是一个紧凑压缩的二进制文件，代表 <code>Redis</code> 在某个时间点上的数据快照。非常适用于备份，全量复制等场景。</p>
+<h5 id="数据恢复速度快"><a href="#数据恢复速度快" class="headerlink" title="数据恢复速度快"></a>数据恢复速度快</h5><p>如果需要进行大规模的数据恢复，并且对数据恢复的完整性不是特别敏感，那么RDB的方式要比<code>AOF</code>更加高效。</p>
+<h4 id="使用RDB进行持久化存在哪些问题"><a href="#使用RDB进行持久化存在哪些问题" class="headerlink" title="使用RDB进行持久化存在哪些问题"></a>使用RDB进行持久化存在哪些问题</h4><h5 id="系统开销大"><a href="#系统开销大" class="headerlink" title="系统开销大"></a>系统开销大</h5><p><code>bgsave</code> 每次运行都要执行 fork 操作创建子进程，属于重量级操作，频繁执行成本过高。</p>
+<h5 id="可能丢失部分数据"><a href="#可能丢失部分数据" class="headerlink" title="可能丢失部分数据"></a>可能丢失部分数据</h5><p>RDB按照指定的时间间隔进行数据备份，那么在最后一次时间间隔内发生系统故障时，最后一次还未持久化数据可能会被丢失</p>
+<h5 id="内存占用高"><a href="#内存占用高" class="headerlink" title="内存占用高"></a>内存占用高</h5><p>在fork进程的时候内存中的数据会被克隆，大致2倍的内存膨胀需要考虑</p>
+<h5 id="文件格式兼容问题"><a href="#文件格式兼容问题" class="headerlink" title="文件格式兼容问题"></a>文件格式兼容问题</h5><p><code>RDB</code>文件使用特定格式的二进制文件存储，<code>Redis</code>多个版本之间的<code>RDB</code>文件可能存在不兼容情况</p>
+<h4 id="RDB相关配置解读"><a href="#RDB相关配置解读" class="headerlink" title="RDB相关配置解读"></a>RDB相关配置解读</h4><p>保存文件为<code>dump.rdb</code></p>
+<p>生产环境下会将备份好的RDB文件通过自动化脚本传输到备用机器上，防止出现单机故障造成数据完全丢失</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 触发RDB的默认配置</span></span><br><span class="line"><span class="comment"># 在15min内至少1个key发生修改</span></span><br><span class="line">save 900 1</span><br><span class="line"><span class="comment"># 在5min内至少10个key发生修改</span></span><br><span class="line">220 save 300 10</span><br><span class="line"><span class="comment"># 在60秒内至少10000个key发生修改</span></span><br><span class="line">221 save 60 10000</span><br><span class="line">---</span><br><span class="line"><span class="comment"># 在客户端写操作发生错误时是否停止RDB后台备份</span></span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"><span class="comment"># 对于存储到磁盘中的快照设置是否进行压缩存储</span></span><br><span class="line">rdbcompression yes</span><br><span class="line"><span class="comment"># 对备份数据进行校验</span></span><br><span class="line">rdbchecksum yes</span><br><span class="line">---</span><br><span class="line"><span class="comment"># 触发备份行为</span></span><br><span class="line"><span class="comment"># 全部阻塞后进行保存（阻塞当前 Redis 服务器，直到 RDB 过程完成为止，对于内存比较大的实例会造成长时间阻塞，线上环境不建议使用。）</span></span><br><span class="line">save</span><br><span class="line"><span class="comment"># 后台异步进行快照保存，快照同时还可以响应客户端的请求（Redis 进程执行 fork 操作创建子进程，RDB 持久化过程由子进程负责，完成后自动结束。阻塞只发生在 fork 阶段，一般时间很短。）</span></span><br><span class="line">bgsave</span><br><span class="line"><span class="comment"># flushall也会触发备份行为，但是生成的RDB文件内容为空</span></span><br><span class="line">---</span><br><span class="line"><span class="comment"># 恢复备份文件</span></span><br><span class="line"><span class="comment"># 可以将备份文件移动到redis的安装目录启动服务即可</span></span><br><span class="line"><span class="comment"># 获取RDB文件位置</span></span><br><span class="line">CONFIG GET dir</span><br><span class="line"><span class="comment"># 设置RDB文件的保存路径</span></span><br><span class="line">config <span class="built_in">set</span> dir dirName</span><br><span class="line"><span class="comment"># 设置RDB文件的文件名</span></span><br><span class="line">config <span class="built_in">set</span> dbfilename newFileName</span><br><span class="line"><span class="comment"># 是否开启RDB文件压缩</span></span><br><span class="line">config <span class="built_in">set</span> rdbcompression &#123;yes|no&#125;</span><br><span class="line">---</span><br><span class="line"><span class="comment"># 禁用RDB</span></span><br><span class="line"><span class="comment"># 如果需要禁用可以在配置文件中使用如下进行配置</span></span><br><span class="line"> save <span class="string">""</span> </span><br><span class="line"><span class="comment"># 也可以通过客户端进行配置</span></span><br><span class="line">redis-cli config <span class="built_in">set</span> save <span class="string">""</span></span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"><span class="comment"># RDB文件发生损坏时检测工具</span></span><br><span class="line"><span class="comment"># Redis加载已损坏RDB文件会无法启动</span></span><br><span class="line"><span class="comment"># Short read or OOM loading DB. Unrecoverable error, aborting now.</span></span><br><span class="line">redis-check-dump  <span class="comment"># ？？使用方式</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="AOF（append-only-file）"><a href="#AOF（append-only-file）" class="headerlink" title="AOF（append only file）"></a><code>AOF</code>（append only file）</h3><h4 id="什么是AOF"><a href="#什么是AOF" class="headerlink" title="什么是AOF"></a>什么是AOF</h4><p>以独立日志的方式记录每次写命令，重启时再重新执行 AOF 文件中的命令达到恢复数据的目的。AOF 的主要作用是解决了数据持久化的实时性，目前已经是 Redis 持久化的主流方式。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启AOF（默认不开启）</span></span><br><span class="line">appendonly yes</span><br><span class="line"><span class="comment"># `AOF`文件命名</span></span><br><span class="line">appendfilename <span class="string">"appendonly.aof"</span></span><br><span class="line"><span class="comment"># `AOF`持久化设置</span></span><br><span class="line">appendfsync everysec</span><br><span class="line"><span class="comment"># 重写时是否可以运用appendfsync</span></span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置`AOF`重写的基准值</span></span><br><span class="line"><span class="comment"># 代表当前 AOF 文件空间（aof_current_size）和上一次重写后 AOF 文件空间（aof_base_size）的比值。</span></span><br><span class="line">auto-`AOF`-rewrite-percentage 100</span><br><span class="line"><span class="comment"># 表示运行 AOF 重写时文件最小体积</span></span><br><span class="line">auto-`AOF`-rewrite-min-size 64mb</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修复`AOF`文件</span></span><br><span class="line">redis-check-aof --fix appendonly.aof</span><br></pre></td></tr></table></figure>
+<h4 id="AOF工作流程"><a href="#AOF工作流程" class="headerlink" title="AOF工作流程"></a>AOF工作流程</h4><p>图片</p>
+<p>1）所有的写入命令会追加到 aof_buf（缓冲区）中。</p>
+<ul>
+<li>Redis 使用单线程响应命令，如果每次写 AOF 文件命令都直接追加到硬盘，那么性能完全取决于当前硬盘负载。</li>
+<li>先写入缓冲区 aof_buf 中，还有另一个好处，Redis 可以提供多种缓冲区同步硬盘的策略，在性能和安全性方面做出平衡。</li>
+</ul>
+<p>2）AOF 缓冲区根据对应的策略向硬盘做同步操作。</p>
+<p>3）随着 AOF 文件越来越大，需要定期对 AOF 文件进行重写，达到压缩的目的。</p>
+<p>4）当 Redis 服务器重启时，可以加载 AOF 文件进行数据恢复。</p>
+<p><code>AOF</code>文件与RDB文件同时存在时，Redis启动时会优先读取<code>AOF</code>文件进行数据恢复，因为通常情况下<code>AOF</code>文件保存的数据集会比RDB文件保存的数据集更完整，但是如果<code>AOF</code>存在错误会导致Redis服务无法启动</p>
+<p>劣势</p>
+<p>相同数据集<code>AOF</code>文件远大于RDB文件恢复速度同样慢于RDB</p>
+<p><code>AOF</code>的运行效率慢于RDB，每秒同步策略效率较高</p>
+<h4 id="使用AOF恢复数据步骤"><a href="#使用AOF恢复数据步骤" class="headerlink" title="使用AOF恢复数据步骤"></a>使用<code>AOF</code>恢复数据步骤</h4><ul>
+<li>配置文件打开<code>AOF</code>配置</li>
+<li>将<code>AOF</code>文件复制备份到对应目录中</li>
+<li>重启Redis服务进行数据加载</li>
+<li>如果<code>AOF</code>文件被写坏使用命令进行修复后重启服务进行加载</li>
+</ul>
+<h4 id="AOF文件重写机制"><a href="#AOF文件重写机制" class="headerlink" title="AOF文件重写机制"></a>AOF文件重写机制</h4><h5 id="AOF重写刷盘策略"><a href="#AOF重写刷盘策略" class="headerlink" title="AOF重写刷盘策略"></a>AOF重写刷盘策略</h5><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>always</td>
+<td>同步持久化，每次发生数据变更会被立即记录至磁盘中，性能较差但是数据完整性好</td>
+</tr>
+<tr>
+<td>everysec</td>
+<td>默认配置，异步操作，每秒记录一次，可能会数据丢失</td>
+</tr>
+<tr>
+<td>no</td>
+<td>从不同步</td>
+</tr>
+</tbody>
+</table>
+<h5 id="什么是AOF文件重写机制"><a href="#什么是AOF文件重写机制" class="headerlink" title="什么是AOF文件重写机制"></a>什么是AOF文件重写机制</h5><p><code>AOF</code>采用文件追加方式，文件会越来越大，重写机制可以保证<code>AOF</code>文件的大小超过所设定的阈值时，Redis对<code>AOF</code>文件的内容进行压缩，只保留可以恢复数据的最小指令集，可以使用命令<code>bgrewriteAOF</code>触发机制 Redis会记录上次重写时<code>AOF</code>大小，默认配置是当<code>AOF</code>文件大小是上次rewrite后大小的一倍并且文件大于64M时触发</p>
+<h5 id="AOF文件重写后为什么可以变小"><a href="#AOF文件重写后为什么可以变小" class="headerlink" title="AOF文件重写后为什么可以变小"></a>AOF文件重写后为什么可以变小</h5><h6 id="写命令中的数据已经被删除"><a href="#写命令中的数据已经被删除" class="headerlink" title="写命令中的数据已经被删除"></a>写命令中的数据已经被删除</h6><p>旧的AOF文件中可能存在无效的写命令，比如在数据写入之后又发生了数据的删除命令，那么该命令其实已经失效了</p>
+<h6 id="写命令中的数据已经过期"><a href="#写命令中的数据已经过期" class="headerlink" title="写命令中的数据已经过期"></a>写命令中的数据已经过期</h6><p>进程内可能存在超时的数据，在旧的AOF文件中可能存在含有过期时间的写入命令，数据过期后该命令已经失效</p>
+<h6 id="多条写命令的合并"><a href="#多条写命令的合并" class="headerlink" title="多条写命令的合并"></a>多条写命令的合并</h6><p>针对相同键的部分写命令可以进行合并</p>
+<h5 id="AOF重写的优点"><a href="#AOF重写的优点" class="headerlink" title="AOF重写的优点"></a>AOF重写的优点</h5><p>降低了AOF文件占用磁盘的空间</p>
+<p>加快了AOF文件被加载的速度</p>
+<hr>
+<h2 id="Redis持久化文件加载流程"><a href="#Redis持久化文件加载流程" class="headerlink" title="Redis持久化文件加载流程"></a>Redis持久化文件加载流程</h2><p>1）AOF 持久化开启且存在 AOF 文件时，优先加载 AOF 文件</p>
+<p>2）AOF 关闭或者 AOF 文件不存在时，加载 RDB 文件，</p>
+<p>3）加载 AOF/RDB 文件成功后，Redis 启动成功。</p>
+<p>4）AOF/RDB 文件存在错误时，Redis 启动失败并打印错误信息。</p>
+<hr>
+<h2 id="RDB与AOF的性能调优建议"><a href="#RDB与AOF的性能调优建议" class="headerlink" title="RDB与AOF的性能调优建议"></a><code>RDB</code>与<code>AOF</code>的性能调优建议</h2><p>RDB文件只用作数据库数据备份，建议只在Slave上持久化RDB文件，而且配置15分钟备份规则就可以满足需要</p>
+<p>如果开启<code>AOF</code>，好处是最恶劣情况下不会丢失超过两秒的数据，代价是带来了持续的IO操作，并且<code>AOF</code> rewrite最后将产生的新数据写到新文件造成的阻塞几乎不可避免。在硬盘许可的情况下应该尽量减少rewrite的频率，<code>AOF</code>重写的基础大小默认值64M可以设置为5GB以上，默认超过原大小的100%可以改为适当的数值。</p>
+<p>如果不开启<code>AOF</code>，仅靠主从复制实现高可用也是可以的，减去频繁的IO操作与rewrite带来的系统波动，代价是主从如果同时挂掉会丢失数据，启动脚本需要比较主从中的RDB文件，载入较新的RDB文件恢复数据。</p>
+<hr>
+<p>参考资料</p>
+<p>书籍：《Redis开发与运维》</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"># redis</a>
+          
+            <a href="/tags/缓存/" rel="tag"># 缓存</a>
+          
+            <a href="/tags/持久化/" rel="tag"># 持久化</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/26/nosql/redis/使用场景/Redis键通知/" rel="next" title="Redis键空间通知">
+                <i class="fa fa-chevron-left"></i> Redis键空间通知
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/11/Java/基础知识/JVM/深入理解JVM之类的加载连接初始化以及类的主动使用/" rel="prev" title="深入理解JVM之类的加载连接初始化以及类的主动使用">
+                深入理解JVM之类的加载连接初始化以及类的主动使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar_4.png" alt="Aaryn">
+            
+              <p class="site-author-name" itemprop="name">Aaryn</p>
+              <p class="site-description motion-element" itemprop="description">Trust Commitment Care</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                    <span class="site-state-item-count">1</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/geekeritcom" title="GitHub &rarr; https://github.com/geekeritcom" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://twitter.com/geekerhub" title="Twitter &rarr; https://twitter.com/geekerhub" rel="noopener" target="_blank"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.csdn.net/" title="https://www.csdn.net/" rel="noopener" target="_blank">CSDN</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://gitbook.cn/" title="https://gitbook.cn/" rel="noopener" target="_blank">GitChat</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://segmentfault.com/" title="https://segmentfault.com/" rel="noopener" target="_blank">Segmentfault</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.yuque.com" title="https://www.yuque.com" rel="noopener" target="_blank">语雀</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要进行持久化操作"><span class="nav-text">为什么需要进行持久化操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么情况下需要开启Redis持久化"><span class="nav-text">什么情况下需要开启Redis持久化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#持久化方式"><span class="nav-text">持久化方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB"><span class="nav-text">RDB</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是RDB"><span class="nav-text">什么是RDB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RDB工作流程"><span class="nav-text">RDB工作流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RDB持久化的优点"><span class="nav-text">RDB持久化的优点</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#适合全量备份"><span class="nav-text">适合全量备份</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#数据恢复速度快"><span class="nav-text">数据恢复速度快</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用RDB进行持久化存在哪些问题"><span class="nav-text">使用RDB进行持久化存在哪些问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#系统开销大"><span class="nav-text">系统开销大</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#可能丢失部分数据"><span class="nav-text">可能丢失部分数据</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#内存占用高"><span class="nav-text">内存占用高</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#文件格式兼容问题"><span class="nav-text">文件格式兼容问题</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RDB相关配置解读"><span class="nav-text">RDB相关配置解读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF（append-only-file）"><span class="nav-text">AOF（append only file）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是AOF"><span class="nav-text">什么是AOF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOF工作流程"><span class="nav-text">AOF工作流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用AOF恢复数据步骤"><span class="nav-text">使用AOF恢复数据步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AOF文件重写机制"><span class="nav-text">AOF文件重写机制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#AOF重写刷盘策略"><span class="nav-text">AOF重写刷盘策略</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#什么是AOF文件重写机制"><span class="nav-text">什么是AOF文件重写机制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AOF文件重写后为什么可以变小"><span class="nav-text">AOF文件重写后为什么可以变小</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#写命令中的数据已经被删除"><span class="nav-text">写命令中的数据已经被删除</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#写命令中的数据已经过期"><span class="nav-text">写命令中的数据已经过期</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#多条写命令的合并"><span class="nav-text">多条写命令的合并</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AOF重写的优点"><span class="nav-text">AOF重写的优点</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis持久化文件加载流程"><span class="nav-text">Redis持久化文件加载流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDB与AOF的性能调优建议"><span class="nav-text">RDB与AOF的性能调优建议</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">  <a href="http://www.miitbeian.gov.cn" rel="noopener" target="_blank">浙ICP备18022220号 </a>&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aaryn</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.7.0"></script>
+
+  <script src="/js/src/motion.js?v=6.7.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=6.7.0"></script>
+
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.7.0"></script>
+<script src="/js/src/post-details.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function(i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap');
+      $(e).after($wrap);
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function(e) {
+        var code = $(this).parent().find('.code').find('.line').map(function(i, e) {
+          return $(e).text();
+        }).toArray().join('\n');
+        var ta = document.createElement('textarea');
+        var range = document.createRange(); //For Chrome
+        var sel = window.getSelection(); //For Chrome
+        var yPosition = window.pageYOffset || document.documentElement.scrollTop;
+        ta.style.top = yPosition + 'px'; //Prevent page scroll
+        ta.style.position = 'absolute';
+        ta.style.opacity = '0';
+        ta.value = code;
+        ta.textContent = code; //For FireFox
+        ta.contentEditable = true;
+        ta.readOnly = false;
+        document.body.appendChild(ta);
+        range.selectNode(ta);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        ta.setSelectionRange(0, code.length);
+        var result = document.execCommand('copy');
+        
+          if (result) $(this).text('复制成功');
+          else $(this).text('复制失败');
+        
+        ta.blur(); //For iOS
+        $(this).blur();
+      })).on('mouseleave', function(e) {
+        var $b = $(this).find('.copy-btn');
+        setTimeout(function() {
+          $b.text('复制');
+        }, 300);
+      }).append(e);
+    })
+  </script>
+
+
+  
+
+</body>
+</html>

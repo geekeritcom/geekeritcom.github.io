@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=6.7.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon_64.ico?v=6.7.0">
+
+
+  <link rel="mask-icon" href="/images/favicon_64.ico?v=6.7.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.7.0',
+    sidebar: {"position":"left","Pisces | Gemini":380,"width":300,"display":"post","offset":13,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="mysql 忘记密码 可能导致数据查询慢的原因 性能低 执行时间长 SQL语句问题（连接查询） 索引失效 服务器参数设置不合理  SQL优化主要就是在优化索引  分析SQL的执行计划语法explain，可以模拟SQL优化器执行SQL语句，从而让开发人员了解SQL的执行情况">
+<meta name="keywords" content="数据库,SQL,性能优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库基础之SQL优化">
+<meta property="og:url" content="http://yoursite.com/2018/06/11/database/MySQL/SQL优化/index.html">
+<meta property="og:site_name" content="GeekerHub">
+<meta property="og:description" content="mysql 忘记密码 可能导致数据查询慢的原因 性能低 执行时间长 SQL语句问题（连接查询） 索引失效 服务器参数设置不合理  SQL优化主要就是在优化索引  分析SQL的执行计划语法explain，可以模拟SQL优化器执行SQL语句，从而让开发人员了解SQL的执行情况">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558858771172.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558070242352.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558070668003.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558070848216.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558074385886.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558074465125.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558074550160.png">
+<meta property="og:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558877177604.png">
+<meta property="og:updated_time" content="2019-10-27T13:57:52.781Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据库基础之SQL优化">
+<meta name="twitter:description" content="mysql 忘记密码 可能导致数据查询慢的原因 性能低 执行时间长 SQL语句问题（连接查询） 索引失效 服务器参数设置不合理  SQL优化主要就是在优化索引  分析SQL的执行计划语法explain，可以模拟SQL优化器执行SQL语句，从而让开发人员了解SQL的执行情况">
+<meta name="twitter:image" content="c:/Users/15927/AppData/Roaming/Typora/typora-user-images/1558858771172.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/11/database/MySQL/SQL优化/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>数据库基础之SQL优化 | GeekerHub</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">GeekerHub</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">信任 承诺 关怀</h1>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+  
+  
+  
+  
+
+  
+
+  <a href="https://github.com/geekeritcom" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" style="fill: #222; color: #fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/11/database/MySQL/SQL优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Aaryn">
+      <meta itemprop="description" content="Trust Commitment Care">
+      <meta itemprop="image" content="/images/avatar_4.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GeekerHub">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">数据库基础之SQL优化
+
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-06-11 14:40:14" itemprop="dateCreated datePublished" datetime="2018-06-11T14:40:14+08:00">2018-06-11</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编程/" itemprop="url" rel="index"><span itemprop="name">编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">5.8k</span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><a href="https://www.cnblogs.com/sbaicl/articles/3132010.html" target="_blank" rel="noopener">mysql 忘记密码</a></p>
+<h2 id="可能导致数据查询慢的原因"><a href="#可能导致数据查询慢的原因" class="headerlink" title="可能导致数据查询慢的原因"></a>可能导致数据查询慢的原因</h2><ul>
+<li>性能低</li>
+<li>执行时间长</li>
+<li>SQL语句问题（连接查询）</li>
+<li>索引失效</li>
+<li>服务器参数设置不合理</li>
+</ul>
+<p>SQL优化主要就是在优化索引</p>
+<hr>
+<h2 id="分析SQL的执行计划"><a href="#分析SQL的执行计划" class="headerlink" title="分析SQL的执行计划"></a>分析SQL的执行计划</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><p>explain，可以模拟SQL优化器执行SQL语句，从而让开发人员了解SQL的执行情况</p>
+<a id="more"></a>
+<h3 id="参数详细说明"><a href="#参数详细说明" class="headerlink" title="参数详细说明"></a>参数详细说明</h3><h4 id="id"><a href="#id" class="headerlink" title="id"></a>id</h4><p>编号</p>
+<p> 编号相同时从上到下顺序执行，上下顺序根据表中的记录数不同而不同，理论依据是笛卡尔积，编号不同时编号越大的先执行</p>
+<h4 id="select-type"><a href="#select-type" class="headerlink" title="select_type"></a>select_type</h4><p>查询类型</p>
+<h5 id="PRIMARY"><a href="#PRIMARY" class="headerlink" title="PRIMARY"></a>PRIMARY</h5><p>包含子查询SQL中的主查询（最外层）</p>
+<h5 id="SUBQUERY"><a href="#SUBQUERY" class="headerlink" title="SUBQUERY"></a>SUBQUERY</h5><p>包含子查询SQL中的子查询  </p>
+<h5 id="SIMPLE"><a href="#SIMPLE" class="headerlink" title="SIMPLE"></a>SIMPLE</h5><p>简单查询（不包含子查询、union）             </p>
+<h5 id="DERIVED"><a href="#DERIVED" class="headerlink" title="DERIVED"></a>DERIVED</h5><p>衍生查询（使用到了临时表，1.在from查询子查询中只有一张表；2.在from子查询中，如果有table1 union table2,则table1就是derived）</p>
+<h5 id="UNION"><a href="#UNION" class="headerlink" title="UNION"></a>UNION</h5><p>若第二个SELECT出现在UNION之后，则被标记为UNION </p>
+<h5 id="UNION-RESULT"><a href="#UNION-RESULT" class="headerlink" title="UNION RESULT"></a>UNION RESULT</h5><p>从UNION表中获取结果的SELECT</p>
+<h4 id="table"><a href="#table" class="headerlink" title="table"></a>table</h4><p>表</p>
+<p>显示这一行的数据是关于那张表的</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>类型</p>
+<p>  system&gt;const&gt;eq_ref&gt;ref&gt;range&gt;inedx&gt;all</p>
+<ul>
+<li><p>system(理想情况)</p>
+<p>只有一条数据的系统表或者衍生表只有一条数据的主查询</p>
+</li>
+<li><p>const(理想情况)</p>
+<p>只能查询一条数据的SQL，用于primary key或者unique 索引</p>
+</li>
+<li><p>eq_ref</p>
+<p>唯一性索引，对于每个索引键的查询，返回匹配唯一行数据（有且只有一个，不能多也不能为0），常见于唯一索引和主键索引。</p>
+</li>
+<li><p>ref</p>
+<p>非唯一性索引，对于每个索引键的查询，返回匹配的所有行</p>
+</li>
+<li><p>range</p>
+<p>检索指定范围的行，where后面是范围查询（between，&gt;,&lt;,&lt;=,&gt;=,in有时候会失效，转为无索引all）</p>
+</li>
+<li><p>inedx</p>
+<p>查询全部索引中数据</p>
+</li>
+<li><p>all</p>
+<p>查询表中全部数据</p>
+</li>
+</ul>
+<h4 id="possible-keys"><a href="#possible-keys" class="headerlink" title="possible_keys"></a>possible_keys</h4><p>预计用到的索引</p>
+<h4 id="key"><a href="#key" class="headerlink" title="key"></a>key</h4><p>实际使用的索引</p>
+<h4 id="key-len"><a href="#key-len" class="headerlink" title="key_len"></a>key_len</h4><p>索引字段的最大可能长度</p>
+<p>表示索引中使用的字节数，可通过该列计算查询中使用的索引的长度。 如果索引字段可以为null，则会使用1个字节用于标识。MySQL会用2个字节标识该字段为变长字段（varchar）</p>
+<h4 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h4><p>表与表之间的引用关系,指明当前表的参照字段</p>
+<h4 id="rows"><a href="#rows" class="headerlink" title="rows"></a>rows</h4><p>通过索引查询的数据量</p>
+<h4 id="Extra"><a href="#Extra" class="headerlink" title="Extra"></a>Extra</h4><p>额外信息</p>
+<ul>
+<li><p>using filesort:性能消耗大，需要额外的一次排序，一般出现在order by语句中</p>
+<ul>
+<li>对于单索引来说，如果排序的字段与查找的字段为同一字段，则不会出现using filesort，建议where哪些字段就order by哪些字段；</li>
+</ul>
+</li>
+<li><p>复合索引不能跨列（最佳左前缀），where和order by按照复合索引使用，不要跨列或者无序使用</p>
+</li>
+<li><p>using temporary：性能损耗大，用到了临时表。一般出现在group by语句中，查询哪些列，就根据哪些列进行分组。已经有表了但是不适用，必须再来一张表。</p>
+</li>
+<li><p>using index：性能提升，覆盖索引（不读取原文件，只从索引文件中获取数据，不需要回表查询），只要使用到的列全部都在索引中，就是索引覆盖</p>
+<p>如果用到了索引覆盖，会对possible_keys 与key造成影响</p>
+<ul>
+<li>如果没有where，则索引只出现在key中<ul>
+<li>如果有where，则索引出现在possible_keys 与key中</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>  <img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558858771172.png" alt="1558858771172"></p>
+<ul>
+<li><p>using where :需要回表查询，查询列中存在索引中不存在的列</p>
+</li>
+<li><p>impossible where：where字句永远为false</p>
+</li>
+</ul>
+<ul>
+<li>MySQL查询优化会干扰优化</li>
+</ul>
+<p>如果（a,b,c,d）复合索引和使用的顺序全部一致（且不跨列使用），则复合索引全部使用，如果部分一致，则使用部分索引。</p>
+<hr>
+<h2 id="SQL优化实战"><a href="#SQL优化实战" class="headerlink" title="SQL优化实战"></a>SQL优化实战</h2><h3 id="单表优化"><a href="#单表优化" class="headerlink" title="单表优化"></a>单表优化</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># 创建表</span><br><span class="line">CREATE TABLE book</span><br><span class="line">(</span><br><span class="line">	bid int(4) primary key,</span><br><span class="line">	name varchar(20) not null,</span><br><span class="line">	authorid int(4) not null,</span><br><span class="line">	publicid int(4) not null,</span><br><span class="line">	typeid int(4) not null</span><br><span class="line">);</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line"># 插入测试数据</span><br><span class="line">INSERT INTO book VALUES (1,&apos;Java&apos;,1,1,3);</span><br><span class="line">INSERT INTO book VALUES (2,&apos;SQL&apos;,2,4,2);</span><br><span class="line">INSERT INTO book VALUES (3,&apos;jQuery&apos;,1,2,4);</span><br><span class="line">INSERT INTO book VALUES (4,&apos;spring&apos;,3,3,1);</span><br><span class="line"></span><br><span class="line"># 需要查询的数据</span><br><span class="line">SELECT bid FROM book WHERE authorid=1 AND typeid in (3,4) ORDER BY typeid DESC;</span><br><span class="line"></span><br><span class="line"># 查看执行计划</span><br><span class="line">explain SELECT bid FROM book WHERE authorid=1 AND typeid in (3,4) ORDER BY typeid DESC;</span><br><span class="line"></span><br><span class="line"># 第一次创建索引（index_bat）</span><br><span class="line">ALTER TABLE book ADD INDEX index_bat (bid,authorid,typeid);</span><br><span class="line"></span><br><span class="line"># 第二次创建索引</span><br><span class="line">ALTER TABLE book ADD INDEX index_atb (authorid,typeid,bid);</span><br><span class="line"></span><br><span class="line"># 删除废弃索引</span><br><span class="line">DROP INDEX index_bat ON book;</span><br></pre></td></tr></table></figure>
+<p>未创建索引时进行查询SQL执行情况</p>
+<ul>
+<li>未使用索引</li>
+<li>需要进行回表查询</li>
+<li>需要进行文件内排序</li>
+</ul>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558070242352.png" alt="1558070242352"></p>
+<p>首次创建索引后执行计划</p>
+<ul>
+<li>覆盖索引</li>
+<li>查询级别提升至index</li>
+<li>依旧需要文件内排序</li>
+</ul>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558070668003.png" alt="1558070668003"></p>
+<p>优化索引后执行计划</p>
+<ul>
+<li>覆盖索引</li>
+<li>查询级别提升至ref</li>
+<li>不再需要进行文件内排序</li>
+<li>存在回表查询的可能（查询typeid时无法命中索引-in范围查询）</li>
+</ul>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558070848216.png" alt="1558070848216"></p>
+<p>索引一旦进行升级优化，需要将废弃的索引进行删除，防止出现查询时干扰</p>
+<ul>
+<li>最佳左前缀原则，需要保持索引的定义与使用的顺序一致性</li>
+<li>索引需要逐步进行优化</li>
+<li>将包含in的范围查询放在where字句的后边，防止索引失效</li>
+</ul>
+<hr>
+<h3 id="两表优化"><a href="#两表优化" class="headerlink" title="两表优化"></a>两表优化</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># 创建表</span><br><span class="line">CREATE TABLE teacher2</span><br><span class="line">(</span><br><span class="line">	tid int(4) primary key,</span><br><span class="line">    cid int(4) not null</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">CREATE TABLE course2</span><br><span class="line">(</span><br><span class="line">	cid int(4) primary key,</span><br><span class="line">    cname varchar(20)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"># 测试数据</span><br><span class="line">INSERT INTO teacher2 VALUES (1,2);</span><br><span class="line">INSERT INTO teacher2 VALUES (2,1);</span><br><span class="line">INSERT INTO teacher2 VALUES (3,3);</span><br><span class="line"></span><br><span class="line">INSERT INTO course2 VALUES (1,&apos;Jsava&apos;);</span><br><span class="line">INSERT INTO course2 VALUES (2,&apos;Python&apos;);</span><br><span class="line">INSERT INTO course2 VALUES (3,&apos;Kotlin&apos;);</span><br><span class="line"></span><br><span class="line">COMMIT;</span><br><span class="line"></span><br><span class="line"># 查询数据</span><br><span class="line">SELECT * FROM teacher2 t LEFT OUTER JOIN course2 c ON t.cid=c.cid WHERE cname=&apos;Java&apos;;</span><br><span class="line"></span><br><span class="line"># 增加索引</span><br><span class="line">ALTER TABLE teacher2 ADD INDEX index_tea_cid (cid);</span><br><span class="line">ALTER TABLE course2 ADD INDEX index_cou_cname (cname);</span><br></pre></td></tr></table></figure>
+<p>两张表进行查询时索引添加规则</p>
+<ul>
+<li>小表驱动大表</li>
+<li>一般情况下左外连接给左表加索引，右外连接给右表加索引</li>
+</ul>
+<p>未使用索引时执行情况</p>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558074385886.png" alt="1558074385886"></p>
+<p>左表增加索引执行情况</p>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558074465125.png" alt="1558074465125"></p>
+<p>cname字段增加索引后执行情况</p>
+<p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558074550160.png" alt="1558074550160"></p>
+<p>using join buffer：MySQL执行引擎使用了连接缓存</p>
+<hr>
+<p>多张表总结</p>
+<ul>
+<li>小表驱动大表</li>
+<li>索引建立在经常查询的字段上</li>
+</ul>
+<hr>
+<p>避免索引失效原则</p>
+<ul>
+<li>复合索引，不要跨列或者无序使用（最佳左前缀）</li>
+<li>复合索引，尽量使用全索引匹配</li>
+<li>不要在索引上进行任何操作（计算，函数，类型转换等）</li>
+<li>对于复合索引，如果左边失效，则右侧全部失效</li>
+<li>复合索引不能使用不等于（!=或&lt;&gt;）或者is null(is not null ),否则自身及右侧索引全部失效</li>
+<li>尽量使用覆盖索引</li>
+<li>like尽量以“常量”开头不要以“%”开头，否则索引失效，如果需要使用like %x%,可以使用覆盖索引，但是只能将查询等级提升至index级别</li>
+<li>尽量不要使用类型转换</li>
+<li>尽量不要使用or，否则索引失效</li>
+</ul>
+<hr>
+<p>其他优化方法</p>
+<ul>
+<li>exist和in<ul>
+<li>如果主查询的数据集大，则使用in</li>
+<li>如果子查询的数据集大，则使用exist</li>
+</ul>
+</li>
+</ul>
+<p>exist:将主查询的结放到子查询中进行 条件校验，看子查询中是否有数据，如果有数据则校验成功</p>
+<p>in:</p>
+<p>MySQL两种排序方式</p>
+<p>文件排序</p>
+<p>扫描有序索引排序</p>
+<ul>
+<li>order by 优化<ul>
+<li>using filesort <ul>
+<li>双路排序，扫描两次磁盘（1从磁盘中读取排序字段，在buffer缓冲区中对字段进行排序2扫描其他字段）</li>
+<li>单路排序（只读取一次全部字段，在buffer中进行排序，如果数据量过大可能会读取多次文件进行排序，调整buffer的容量大小）<ul>
+<li>增大sort_buffer_size参数的设置</li>
+<li>增大max_length_for_sort_data参数的设置</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>避免select *…</li>
+<li>复合索引不要跨列使用</li>
+<li>保证全部排序字段的排序一致性（都是升序或者降序）</li>
+</ul>
+</li>
+</ul>
+<p>group by优化</p>
+<p>实质上是先排序再进行分组，遵照索引建的最佳左前缀</p>
+<p>where高于having，能写在where限定的条件就不要去having限定</p>
+<hr>
+<h2 id="SQL排查-慢查询日志"><a href="#SQL排查-慢查询日志" class="headerlink" title="SQL排查-慢查询日志"></a>SQL排查-慢查询日志</h2><h3 id="设置记录慢查询日志"><a href="#设置记录慢查询日志" class="headerlink" title="设置记录慢查询日志"></a>设置记录慢查询日志</h3><p>MySQL提供的日志记录，用于记录MySQL中响应时间超过阀值的SQL语句</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 检查是否开启慢查询</span><br><span class="line">show variables like &apos;%slow_query_log&apos;;</span><br><span class="line"># 查看慢查询阀值</span><br><span class="line">show variables like &apos;%long_query_time%&apos;;</span><br><span class="line"># 设置临时阀值</span><br><span class="line">set global long_query_time = 5;</span><br><span class="line"># 永久设置</span><br><span class="line">[mysqld]</span><br><span class="line">long_query_time=5</span><br><span class="line"># 临时开启</span><br><span class="line">set global slow_query_log = 1;</span><br><span class="line"># 永久开启（建议调试时开启正式环境关闭），编辑配置文件/etc/my.cnf</span><br><span class="line">[mysqld]</span><br><span class="line">slow_query_log=1</span><br><span class="line">slow_query_log_file=/var/lib/mysql/localhost-slow.log</span><br><span class="line">long_output=FILE</span><br><span class="line"># 查询超过设置阀值的SQL数量</span><br><span class="line">show global status like &apos;%slow_queries%&apos;;</span><br></pre></td></tr></table></figure>
+<h3 id="查看具体的慢查询SQL语句方式"><a href="#查看具体的慢查询SQL语句方式" class="headerlink" title="查看具体的慢查询SQL语句方式"></a>查看具体的慢查询SQL语句方式</h3><h4 id="查看自定义的慢查询日志文件"><a href="#查看自定义的慢查询日志文件" class="headerlink" title="查看自定义的慢查询日志文件"></a>查看自定义的慢查询日志文件</h4><h4 id="通过MySQLdumpslow工具查看慢SQL"><a href="#通过MySQLdumpslow工具查看慢SQL" class="headerlink" title="通过MySQLdumpslow工具查看慢SQL"></a>通过<code>MySQLdumpslow</code>工具查看慢SQL</h4><h5 id="常用参数"><a href="#常用参数" class="headerlink" title="常用参数"></a>常用参数</h5><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s</td>
+<td>按照何种方式排序</td>
+</tr>
+<tr>
+<td>c</td>
+<td>访问次数</td>
+</tr>
+<tr>
+<td>l</td>
+<td>锁定时间</td>
+</tr>
+<tr>
+<td>r</td>
+<td>逆序</td>
+</tr>
+<tr>
+<td>t</td>
+<td>返回记录数</td>
+</tr>
+<tr>
+<td>al</td>
+<td>平均锁定时间</td>
+</tr>
+<tr>
+<td>ar</td>
+<td>平均返回记录数</td>
+</tr>
+<tr>
+<td>at</td>
+<td>平均查询时间</td>
+</tr>
+<tr>
+<td>g</td>
+<td>正则匹配</td>
+</tr>
+</tbody>
+</table>
+<h5 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 获取返回记录最多的三个SQL</span></span><br><span class="line">mysqldumpslow -s r -t 3 /var/lib/mysql/slow.log</span><br><span class="line"><span class="meta">#</span><span class="bash"> 获取访问次数最多的三个SQL</span></span><br><span class="line">mysqldumpslow -s c -t 3 /var/lib/mysql/slow.log</span><br><span class="line"><span class="meta">#</span><span class="bash"> 按照时间排序，前十条包含left join查询语句的SQL</span></span><br><span class="line">mysqldumpslow -s t -t 10 -g "left join" /var/lib/mysql/slow.log | more</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="show-profile"><a href="#show-profile" class="headerlink" title="show profile"></a>show profile</h2><h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p>用来分析当前会话中语句执行的资源消耗情况</p>
+<h3 id="如何做"><a href="#如何做" class="headerlink" title="如何做"></a>如何做</h3><p>模拟海量数据 通过存储函数与存储过程</p>
+<h3 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"># 查看profile属性</span><br><span class="line">show variables like &apos;%profiling%&apos;;</span><br><span class="line"># 会记录所有profiling打开之后的查询SQL所花费的时间（只能看到全部SQL查询话费的时间）</span><br><span class="line">show profiles;</span><br><span class="line"># 查看硬件各部分在执行SQL时花费的时间</span><br><span class="line">show profile all </span><br><span class="line"># 诊断SQL</span><br><span class="line">show profile cpu,block io for query 问题queryID</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="全局查询日志"><a href="#全局查询日志" class="headerlink" title="全局查询日志"></a>全局查询日志</h2><h3 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 开启</span><br><span class="line">set global general_log=1;</span><br><span class="line"># </span><br><span class="line">set global log_output=&apos;TABLE&apos;;</span><br><span class="line"># 查询</span><br><span class="line">SELECT * FROM mysql.general_log;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="SQL优化建议"><a href="#SQL优化建议" class="headerlink" title="SQL优化建议"></a>SQL优化建议</h2><p>一般性建议</p>
+<ul>
+<li>对于单键索引，尽量选择针对当前query过滤性更好的索引</li>
+<li>在选择组合索引的时候，当前query中过滤性最好的字段在索引字段顺序 中，位置越靠前越好</li>
+<li>在选择组合索引时，尽量选择可以能够包含当前query中的where字句中更多字段的索引</li>
+<li>尽可能通过分析统计信息和调整query的写法来达到选择合适索引的目的</li>
+</ul>
+<h2 id="SQL优化的方案总结"><a href="#SQL优化的方案总结" class="headerlink" title="SQL优化的方案总结"></a>SQL优化的方案总结</h2><h3 id="开启慢查询并查看日志"><a href="#开启慢查询并查看日志" class="headerlink" title="开启慢查询并查看日志"></a>开启慢查询并查看日志</h3><h3 id="explain-慢SQL分析"><a href="#explain-慢SQL分析" class="headerlink" title="explain+慢SQL分析"></a>explain+慢SQL分析</h3><h3 id="show-profile查询SQL在MySQL服务器的执行细节与生命周期情况"><a href="#show-profile查询SQL在MySQL服务器的执行细节与生命周期情况" class="headerlink" title="show profile查询SQL在MySQL服务器的执行细节与生命周期情况"></a>show profile查询SQL在MySQL服务器的执行细节与生命周期情况</h3><h3 id="SQL数据库服务器的参数调优"><a href="#SQL数据库服务器的参数调优" class="headerlink" title="SQL数据库服务器的参数调优"></a>SQL数据库服务器的参数调优</h3><p><img src="C:\Users\15927\AppData\Roaming\Typora\typora-user-images\1558877177604.png" alt="1558877177604"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据库/" rel="tag"># 数据库</a>
+          
+            <a href="/tags/SQL/" rel="tag"># SQL</a>
+          
+            <a href="/tags/性能优化/" rel="tag"># 性能优化</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/01/database/MySQL/数据库基础之事务/" rel="next" title="数据库基础之事务">
+                <i class="fa fa-chevron-left"></i> 数据库基础之事务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/06/11/Java/基础知识/thread/线程池的创建/" rel="prev" title="线程池创建以及拒绝策略">
+                线程池创建以及拒绝策略 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar_4.png" alt="Aaryn">
+            
+              <p class="site-author-name" itemprop="name">Aaryn</p>
+              <p class="site-description motion-element" itemprop="description">Trust Commitment Care</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                    <span class="site-state-item-count">1</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">42</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/geekeritcom" title="GitHub &rarr; https://github.com/geekeritcom" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://twitter.com/geekerhub" title="Twitter &rarr; https://twitter.com/geekerhub" rel="noopener" target="_blank"><i class="fa fa-fw fa-twitter"></i>Twitter</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.csdn.net/" title="https://www.csdn.net/" rel="noopener" target="_blank">CSDN</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://gitbook.cn/" title="https://gitbook.cn/" rel="noopener" target="_blank">GitChat</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://segmentfault.com/" title="https://segmentfault.com/" rel="noopener" target="_blank">Segmentfault</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.yuque.com" title="https://www.yuque.com" rel="noopener" target="_blank">语雀</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#可能导致数据查询慢的原因"><span class="nav-text">可能导致数据查询慢的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析SQL的执行计划"><span class="nav-text">分析SQL的执行计划</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法"><span class="nav-text">语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参数详细说明"><span class="nav-text">参数详细说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#id"><span class="nav-text">id</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#select-type"><span class="nav-text">select_type</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#PRIMARY"><span class="nav-text">PRIMARY</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#SUBQUERY"><span class="nav-text">SUBQUERY</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#SIMPLE"><span class="nav-text">SIMPLE</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DERIVED"><span class="nav-text">DERIVED</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UNION"><span class="nav-text">UNION</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UNION-RESULT"><span class="nav-text">UNION RESULT</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#table"><span class="nav-text">table</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#type"><span class="nav-text">type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#possible-keys"><span class="nav-text">possible_keys</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#key"><span class="nav-text">key</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#key-len"><span class="nav-text">key_len</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ref"><span class="nav-text">ref</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#rows"><span class="nav-text">rows</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Extra"><span class="nav-text">Extra</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL优化实战"><span class="nav-text">SQL优化实战</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单表优化"><span class="nav-text">单表优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两表优化"><span class="nav-text">两表优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL排查-慢查询日志"><span class="nav-text">SQL排查-慢查询日志</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置记录慢查询日志"><span class="nav-text">设置记录慢查询日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看具体的慢查询SQL语句方式"><span class="nav-text">查看具体的慢查询SQL语句方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看自定义的慢查询日志文件"><span class="nav-text">查看自定义的慢查询日志文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#通过MySQLdumpslow工具查看慢SQL"><span class="nav-text">通过MySQLdumpslow工具查看慢SQL</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#常用参数"><span class="nav-text">常用参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#常用命令"><span class="nav-text">常用命令</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#show-profile"><span class="nav-text">show profile</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#作用"><span class="nav-text">作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何做"><span class="nav-text">如何做</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#语法-1"><span class="nav-text">语法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全局查询日志"><span class="nav-text">全局查询日志</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#相关命令"><span class="nav-text">相关命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL优化建议"><span class="nav-text">SQL优化建议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL优化的方案总结"><span class="nav-text">SQL优化的方案总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开启慢查询并查看日志"><span class="nav-text">开启慢查询并查看日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#explain-慢SQL分析"><span class="nav-text">explain+慢SQL分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#show-profile查询SQL在MySQL服务器的执行细节与生命周期情况"><span class="nav-text">show profile查询SQL在MySQL服务器的执行细节与生命周期情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL数据库服务器的参数调优"><span class="nav-text">SQL数据库服务器的参数调优</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">  <a href="http://www.miitbeian.gov.cn" rel="noopener" target="_blank">浙ICP备18022220号 </a>&copy; 2018 – <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aaryn</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.7.0"></script>
+
+  <script src="/js/src/motion.js?v=6.7.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=6.7.0"></script>
+
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=6.7.0"></script>
+<script src="/js/src/post-details.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.7.0"></script>
+
+
+
+  
+
+
+  
+
+
+  
+
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function(i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap');
+      $(e).after($wrap);
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function(e) {
+        var code = $(this).parent().find('.code').find('.line').map(function(i, e) {
+          return $(e).text();
+        }).toArray().join('\n');
+        var ta = document.createElement('textarea');
+        var range = document.createRange(); //For Chrome
+        var sel = window.getSelection(); //For Chrome
+        var yPosition = window.pageYOffset || document.documentElement.scrollTop;
+        ta.style.top = yPosition + 'px'; //Prevent page scroll
+        ta.style.position = 'absolute';
+        ta.style.opacity = '0';
+        ta.value = code;
+        ta.textContent = code; //For FireFox
+        ta.contentEditable = true;
+        ta.readOnly = false;
+        document.body.appendChild(ta);
+        range.selectNode(ta);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        ta.setSelectionRange(0, code.length);
+        var result = document.execCommand('copy');
+        
+          if (result) $(this).text('复制成功');
+          else $(this).text('复制失败');
+        
+        ta.blur(); //For iOS
+        $(this).blur();
+      })).on('mouseleave', function(e) {
+        var $b = $(this).find('.copy-btn');
+        setTimeout(function() {
+          $b.text('复制');
+        }, 300);
+      }).append(e);
+    })
+  </script>
+
+
+  
+
+</body>
+</html>
