@@ -96,23 +96,25 @@
 
 
 
-  <meta name="description" content="Trust Commitment Care">
-<meta property="og:type" content="website">
-<meta property="og:title" content="GeekerHub">
-<meta property="og:url" content="http://yoursite.com/tags/阿里云/index.html">
+  <meta name="description" content="本文介绍如何通过docker容器进行Mysql部署，并记录了自己在远程连接过程中遇到的几个小问题，对于数据的持久化到宿主机的问题还需要学习补充。 部署过程拉取镜像1docker pull mysql 创建容器12# -e 代表添加环境变量，MYSQL_ROOT_PASSWORD是root用户的登录密码docker run -di --name=mysql -p 63306:3306 -e MYSQ">
+<meta name="keywords" content="数据库,Mysql - docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用docker部署Mysql">
+<meta property="og:url" content="http://yoursite.com/2019/11/03/docker/使用docker部署Mysql/index.html">
 <meta property="og:site_name" content="GeekerHub">
-<meta property="og:description" content="Trust Commitment Care">
+<meta property="og:description" content="本文介绍如何通过docker容器进行Mysql部署，并记录了自己在远程连接过程中遇到的几个小问题，对于数据的持久化到宿主机的问题还需要学习补充。 部署过程拉取镜像1docker pull mysql 创建容器12# -e 代表添加环境变量，MYSQL_ROOT_PASSWORD是root用户的登录密码docker run -di --name=mysql -p 63306:3306 -e MYSQ">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-03T10:51:40.789Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="GeekerHub">
-<meta name="twitter:description" content="Trust Commitment Care">
+<meta name="twitter:title" content="使用docker部署Mysql">
+<meta name="twitter:description" content="本文介绍如何通过docker容器进行Mysql部署，并记录了自己在远程连接过程中遇到的几个小问题，对于数据的持久化到宿主机的问题还需要学习补充。 部署过程拉取镜像1docker pull mysql 创建容器12# -e 代表添加环境变量，MYSQL_ROOT_PASSWORD是root用户的登录密码docker run -di --name=mysql -p 63306:3306 -e MYSQ">
 
 
 
 
 
 
-  <link rel="canonical" href="http://yoursite.com/tags/阿里云/">
+  <link rel="canonical" href="http://yoursite.com/2019/11/03/docker/使用docker部署Mysql/">
 
 
 
@@ -122,7 +124,7 @@
   };
 </script>
 
-  <title>标签: 阿里云 | GeekerHub</title>
+  <title>使用docker部署Mysql | GeekerHub</title>
   
 
 
@@ -170,7 +172,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -229,7 +231,7 @@
         
         
           
-          <li class="menu-item menu-item-tags menu-item-active">
+          <li class="menu-item menu-item-tags">
 
     
     
@@ -293,25 +295,6 @@
   
     
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
-
   
 
   
@@ -366,56 +349,240 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h2>阿里云<small>标签</small>
-        </h2>
-      </div>
+  
 
-      
-        
+  
+  
+  
+
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/03/docker/使用docker部署Mysql/">
 
-      <h3 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Aaryn">
+      <meta itemprop="description" content="Trust Commitment Care">
+      <meta itemprop="image" content="/images/avatar_4.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GeekerHub">
+    </span>
+
+    
+      <header class="post-header">
+
         
-          <a class="post-title-link" href="/2018/12/13/framework/springboot/2018-12-13-Spring Boot集成阿里云短信服务/" itemprop="url">
-            
-              <span itemprop="name">Springboot集成阿里云短信服务</span>
-            
-          </a>
         
-      </h3>
+          <h2 class="post-title" itemprop="name headline">使用docker部署Mysql
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2018-12-13T17:25:09+08:00" content="2018-12-13">
-          12-13
-        </time>
-      </div>
+              
+            
+          </h2>
+        
 
-    </header>
-  </article>
+        <div class="post-meta">
+          <span class="post-time">
 
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-03 18:42:14" itemprop="dateCreated datePublished" datetime="2019-11-03T18:42:14+08:00">2019-11-03</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编程/" itemprop="url" rel="index"><span itemprop="name">编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">1k</span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文介绍如何通过docker容器进行<code>Mysql</code>部署，并记录了自己在远程连接过程中遇到的几个小问题，对于数据的持久化到宿主机的问题还需要学习补充。</p>
+<h1 id="部署过程"><a href="#部署过程" class="headerlink" title="部署过程"></a>部署过程</h1><h2 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql</span><br></pre></td></tr></table></figure>
+<h2 id="创建容器"><a href="#创建容器" class="headerlink" title="创建容器"></a>创建容器</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -e 代表添加环境变量，MYSQL_ROOT_PASSWORD是root用户的登录密码</span></span><br><span class="line">docker run -di --name=mysql -p 63306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql</span><br></pre></td></tr></table></figure>
+<h2 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it mysql /bin/bash</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="登陆MySQL"><a href="#登陆MySQL" class="headerlink" title="登陆MySQL"></a>登陆<code>MySQL</code></h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -p</span><br></pre></td></tr></table></figure>
+<h2 id="查看用户列表"><a href="#查看用户列表" class="headerlink" title="查看用户列表"></a>查看用户列表</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select host,user,plugin,authentication_string from mysql.user;</span><br></pre></td></tr></table></figure>
+<h2 id="设置远程登录信息"><a href="#设置远程登录信息" class="headerlink" title="设置远程登录信息"></a>设置远程登录信息</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 允许root账户使用密码123456登录</span><br><span class="line">ALTER user &apos;root&apos;@&apos;%&apos; IDENTIFIED WITH mysql_native_password BY &apos;123456&apos;;</span><br></pre></td></tr></table></figure>
+<h2 id="刷新信息"><a href="#刷新信息" class="headerlink" title="刷新信息"></a>刷新信息</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+<h1 id="navicat远程连接"><a href="#navicat远程连接" class="headerlink" title="navicat远程连接"></a><code>navicat</code>远程连接</h1><h2 id="普通方式"><a href="#普通方式" class="headerlink" title="普通方式"></a>普通方式</h2><p>常规项内直接填写远程服务器的<code>IP</code>地址，端口填写服务器宿主机映射的<code>MySQL</code>的端口，用户名密码为docker容器内<code>MySQL</code>实例的用户名密码</p>
+<blockquote>
+<p> 需要注意</p>
+<ol>
+<li>云服务器需要将<code>MySQL</code>的端口放通</li>
+<li>开启防火墙的情况下防火墙需要放通端口</li>
+</ol>
+</blockquote>
+<h2 id="SSH方式"><a href="#SSH方式" class="headerlink" title="SSH方式"></a>SSH方式</h2><h3 id="常规项注意事项"><a href="#常规项注意事项" class="headerlink" title="常规项注意事项"></a>常规项注意事项</h3><ol>
+<li>连接名自定义</li>
+<li>主机填写<code>localhost</code></li>
+<li>端口填写的应该是远程服务器中映射的宿主机的端口，而不是本地<code>navicat</code>所在的客户机的<code>MySQL</code>端口</li>
+<li>用户名密码填写docker中设置的远程登录的用户名与密码</li>
+</ol>
+<h3 id="SSH项注意事项"><a href="#SSH项注意事项" class="headerlink" title="SSH项注意事项"></a>SSH项注意事项</h3><ol>
+<li>主机填写远程服务器的<strong>公网</strong><code>IP</code>地址</li>
+<li>端口使用自定义的SSH的端口，默认22，修改过的话就是自定义的SSH端口；</li>
+<li>用户名密码填写远程登录用户名密码，或者使用公钥进行登录</li>
+</ol>
+<h3 id="可能造成SSH连接不通的原因"><a href="#可能造成SSH连接不通的原因" class="headerlink" title="可能造成SSH连接不通的原因"></a>可能造成SSH连接不通的原因</h3><ol>
+<li>云服务器查看<strong>安全组</strong>是否放通SSH端口，一般不可能，不然你远程登录服务器时就已经报错了</li>
+<li>服务器的<code>hosts.deny</code>文件中是否包含了<code>navicat</code>所在客户端的请求地址，一般是开启了防暴力破解有可能被误加入了，例如<code>Denthosts</code>等</li>
+<li>检查SSH端口，默认为22，自定义的情况下一定记得修改</li>
+</ol>
 
       
     </div>
 
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/数据库/" rel="tag"># 数据库</a>
+          
+            <a href="/tags/Mysql-docker/" rel="tag"># Mysql - docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/31/Java/vcs/git_config/" rel="next" title="Config Github And Gitlab At Same Computer">
+                <i class="fa fa-chevron-left"></i> Config Github And Gitlab At Same Computer
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -438,8 +605,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <div class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -676,6 +852,23 @@
       </div>
 
       
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#部署过程"><span class="nav-text">部署过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#拉取镜像"><span class="nav-text">拉取镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建容器"><span class="nav-text">创建容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进入容器"><span class="nav-text">进入容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#登陆MySQL"><span class="nav-text">登陆MySQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看用户列表"><span class="nav-text">查看用户列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置远程登录信息"><span class="nav-text">设置远程登录信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#刷新信息"><span class="nav-text">刷新信息</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#navicat远程连接"><span class="nav-text">navicat远程连接</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#普通方式"><span class="nav-text">普通方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSH方式"><span class="nav-text">SSH方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常规项注意事项"><span class="nav-text">常规项注意事项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSH项注意事项"><span class="nav-text">SSH项注意事项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可能造成SSH连接不通的原因"><span class="nav-text">可能造成SSH连接不通的原因</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
 
       
         <div class="back-to-top">
@@ -799,6 +992,10 @@
 
 
   
+  <script src="/js/src/scrollspy.js?v=6.7.0"></script>
+<script src="/js/src/post-details.js?v=6.7.0"></script>
+
+
 
   
 
@@ -809,6 +1006,8 @@
 
   
 
+
+  
 
 
   

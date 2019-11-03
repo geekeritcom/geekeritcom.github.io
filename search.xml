@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[使用docker部署Mysql]]></title>
+    <url>%2F2019%2F11%2F03%2Fdocker%2F%E4%BD%BF%E7%94%A8docker%E9%83%A8%E7%BD%B2Mysql%2F</url>
+    <content type="text"><![CDATA[本文介绍如何通过docker容器进行Mysql部署，并记录了自己在远程连接过程中遇到的几个小问题，对于数据的持久化到宿主机的问题还需要学习补充。 部署过程拉取镜像1docker pull mysql 创建容器12# -e 代表添加环境变量，MYSQL_ROOT_PASSWORD是root用户的登录密码docker run -di --name=mysql -p 63306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql 进入容器1docker exec -it mysql /bin/bash 登陆MySQL1mysql -uroot -p 查看用户列表1select host,user,plugin,authentication_string from mysql.user; 设置远程登录信息12# 允许root账户使用密码123456登录ALTER user &apos;root&apos;@&apos;%&apos; IDENTIFIED WITH mysql_native_password BY &apos;123456&apos;; 刷新信息1FLUSH PRIVILEGES; navicat远程连接普通方式常规项内直接填写远程服务器的IP地址，端口填写服务器宿主机映射的MySQL的端口，用户名密码为docker容器内MySQL实例的用户名密码 需要注意 云服务器需要将MySQL的端口放通 开启防火墙的情况下防火墙需要放通端口 SSH方式常规项注意事项 连接名自定义 主机填写localhost 端口填写的应该是远程服务器中映射的宿主机的端口，而不是本地navicat所在的客户机的MySQL端口 用户名密码填写docker中设置的远程登录的用户名与密码 SSH项注意事项 主机填写远程服务器的公网IP地址 端口使用自定义的SSH的端口，默认22，修改过的话就是自定义的SSH端口； 用户名密码填写远程登录用户名密码，或者使用公钥进行登录 可能造成SSH连接不通的原因 云服务器查看安全组是否放通SSH端口，一般不可能，不然你远程登录服务器时就已经报错了 服务器的hosts.deny文件中是否包含了navicat所在客户端的请求地址，一般是开启了防暴力破解有可能被误加入了，例如Denthosts等 检查SSH端口，默认为22，自定义的情况下一定记得修改]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>Mysql - docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Config Github And Gitlab At Same Computer]]></title>
     <url>%2F2019%2F10%2F31%2FJava%2Fvcs%2Fgit_config%2F</url>
     <content type="text"><![CDATA[生成秘钥生成需要的秘钥公钥，这里需要注意的是如果需要同时为github与gitlab生成配置时需要指定文件名称，否则会被覆盖 1ssh-keygen -t rsa -C 'youremail' 上传秘钥将生成的公钥上传至网站ssh配置处 本地机器配置位于用户目录下的.ssh文件夹中，不存在时创建该文件config 123456789101112# gitlab# Host需要指定为自己gitlab的地址Host 192.168.1.102 HostName 192.168.1.102 PreferredAuthentications publickey # 指定对应网站相应的私钥 IdentityFile ~/.ssh/gitlab# githubHost github.com HostName github.com PreferredAuthentications publickey IdentityFile ~/.ssh/id_rsa 参考链接GitLab配置ssh key 可以在一台机器上使用GitHub和GitLab吗？ Generating a new SSH key and adding it to the ssh-agent]]></content>
