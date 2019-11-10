@@ -180,9 +180,9 @@
     
       <category term="Java" scheme="http://yoursite.com/tags/Java/"/>
     
-      <category term="JDK源码解读" scheme="http://yoursite.com/tags/JDK%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/"/>
-    
       <category term="List" scheme="http://yoursite.com/tags/List/"/>
+    
+      <category term="JDK源码解读" scheme="http://yoursite.com/tags/JDK%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/"/>
     
   </entry>
   

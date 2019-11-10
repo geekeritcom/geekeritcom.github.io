@@ -1091,6 +1091,265 @@
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/11/Linux/linux常用命令之文件目录命令/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Aaryn">
+      <meta itemprop="description" content="Trust Commitment Care">
+      <meta itemprop="image" content="/images/avatar_4.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GeekerHub">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2017/03/11/Linux/linux常用命令之文件目录命令/" class="post-title-link" itemprop="url">Linux命令之文件目录命令</a>
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-03-11 17:40:14" itemprop="dateCreated datePublished" datetime="2017-03-11T17:40:14+08:00">2017-03-11</time>
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/编程/" itemprop="url" rel="index"><span itemprop="name">编程</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">2.2k</span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="目录处理命令"><a href="#目录处理命令" class="headerlink" title="目录处理命令"></a>目录处理命令</h1><h2 id="查看目录信息ls-list"><a href="#查看目录信息ls-list" class="headerlink" title="查看目录信息ls(list)"></a>查看目录信息ls(list)</h2><table>
+<thead>
+<tr>
+<th>选项</th>
+<th>描述</th>
+<th>备注信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-a</code></td>
+<td>显示目录下所有文件，包括隐藏文件</td>
+<td>以<code>.</code>开头的文件为隐藏文件</td>
+</tr>
+<tr>
+<td><code>-l</code></td>
+<td>详细信息显示，包括目录下文件的所有者信息，文件大小等</td>
+<td>可以使用组合选项<code>-lh</code>人性化查看文件大小</td>
+</tr>
+<tr>
+<td><code>-d</code></td>
+<td>查看目录属性</td>
+<td>一般与<code>-l</code>选项组合使用</td>
+</tr>
+<tr>
+<td><code>-i</code></td>
+<td>查看文件<code>id</code>号</td>
+</tr>
+</tbody>
+</table>
+<p><code>-lh</code>查看文件详细信息说明</p>
+<table>
+<thead>
+<tr>
+<th>组成</th>
+<th>描述</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-rw-------</code></td>
+<td>文件</td>
+<td>第一个字符标识文件的类型，常见的有-标识文件，d标识目录，l标识软链接，后边的字符标识文件的所有者，所属组以及其他人的权限信息</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>文件的引用计数</td>
+<td></td>
+</tr>
+<tr>
+<td><code>root</code></td>
+<td>文件所有者</td>
+<td></td>
+</tr>
+<tr>
+<td><code>root</code></td>
+<td>文件所属组</td>
+<td></td>
+</tr>
+<tr>
+<td><code>4096</code></td>
+<td>文件大小</td>
+<td>可以使用-lh选项人性化查看</td>
+</tr>
+<tr>
+<td><code>Nov  7 11:21</code></td>
+<td>文件最后修改时间</td>
+<td></td>
+</tr>
+<tr>
+<td><code>a.log</code></td>
+<td>文件名</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>注意虽然文件属于root用户所有，但是如果该文件并不一定是可执行文件，那么即使是所有者可能也只有读写权限</p>
+</blockquote>
+          <!--noindex-->
+          
+            <div class="post-button text-center">
+              <a class="btn" href="/2017/03/11/Linux/linux常用命令之文件目录命令/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
@@ -1142,7 +1401,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">34</span>
+                    <span class="site-state-item-count">35</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -1288,7 +1547,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">48</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">50</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

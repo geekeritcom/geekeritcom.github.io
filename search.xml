@@ -70,8 +70,8 @@
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>JDK源码解读</tag>
         <tag>List</tag>
+        <tag>JDK源码解读</tag>
       </tags>
   </entry>
   <entry>
@@ -419,6 +419,19 @@
       <tags>
         <tag>数据库</tag>
         <tag>事务</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Linux命令之文件目录命令]]></title>
+    <url>%2F2017%2F03%2F11%2FLinux%2Flinux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%B9%8B%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E5%91%BD%E4%BB%A4%2F</url>
+    <content type="text"><![CDATA[目录处理命令查看目录信息ls(list) 选项 描述 备注信息 -a 显示目录下所有文件，包括隐藏文件 以.开头的文件为隐藏文件 -l 详细信息显示，包括目录下文件的所有者信息，文件大小等 可以使用组合选项-lh人性化查看文件大小 -d 查看目录属性 一般与-l选项组合使用 -i 查看文件id号 -lh查看文件详细信息说明 组成 描述 备注 -rw------- 文件 第一个字符标识文件的类型，常见的有-标识文件，d标识目录，l标识软链接，后边的字符标识文件的所有者，所属组以及其他人的权限信息 1 文件的引用计数 root 文件所有者 root 文件所属组 4096 文件大小 可以使用-lh选项人性化查看 Nov 7 11:21 文件最后修改时间 a.log 文件名 注意虽然文件属于root用户所有，但是如果该文件并不一定是可执行文件，那么即使是所有者可能也只有读写权限 创建目录mkdir(make directory) 参数 描述 -p 递归创建 切换目录cd（change directory）1234cd /etccd /usr/local# 回到上级目录cd .. 查看当前所在目录pwd(print working directory)删除空目录rmdir(remove directory)1rmdir /tmp/test 复制目录或文件cp(copy) 参数 描述 -r 复制目录 -p 保留文件属性 12# 复制时重命名cp /etc/test.cfg /tmp/test1.cfg 剪切与更名mv(move)1234# 剪切文件mv /usr/local/nginx/nginx.conf /etc/nginx/# 重命名文件mv nginx.conf nginx.cfg 删除文件rm(remove) 选项 描述 -r 删除目录 -f 强制删除 删除文件时除了确定的垃圾文件以外一定要对数据做好备份，如果误删文件并且没有备份的情况下尽量不要再对该硬盘做读写操作，操作越多未来能够恢复数据的可能性就越小 123456# 删除文件rm a.txt# 删除目录rm -r test# 强制删除目录下所有内容rm -rf test 文件处理命令创建文件touch1234# create a file in this directorytouch a.txt# create a file in other directorytouch /home/jerry/a.txt 查看文件cat作用 适合查看短小的文件 1234# 查看文件并显示行号cat -n /etc/nginx/nginx.conf# 反向查看文件tac /etc/nginx/nginx.conf more作用 分页查看文件 使用方式 space或者f进行翻页 enter进行逐行读取 q退出查看 less作用 分页查看文件，支持向上翻页 使用方式 pageUp 向上翻页 上箭头向上逐行读取 /keyword搜索关键词，输入回车后存在多个搜索结果时按n跳转到下一个 1less /etc/service head作用 查看文件的前几行内容 1234# 查看指定前几行内容head -n 5 /etc/nginx/nginx.conf# 默认查看前10行内容head /etc/nginx/nginx,conf tail作用 查看文件尾部的内容 1234# 查看文件最后50行内容tail -n 50 /etc/nginx/nginx.conf# 动态查看文件尾部的内容，常用于跟踪日志等tail -n 500 -f /var/log/access.log 链接命令ln1234# 软链接ln -s /etc/nginx/nginx.conf /usr/local/nginx/nginx.conf# 硬链接ln /etc/nginx/nginx.conf /usr/local/nginx/nginx.conf 软连接特征作用类似与windows中的快捷方式 所有软链接文件的文件权限全部为lrwxrwxrwx，这是由于其并不是真正的可执行文件，真正的文件权限是由软链接指向的文件权限决定的 软链接文件大小特别小，因为其只是一个符号链接 软链接文件会有明确的文件箭头指向源文件，并且在源文件被删除之后软链接的箭头指向会标红标识源文件不存在 硬链接特征作用相当于cp -p+同步更新，修改源文件之后硬链接文件的内容可以同步更新 可以通过i节点识别出硬链接文件，与源文件的inode相同标识其为硬链接文件 硬链接文件不能跨分区使用 不能针对目录使用硬链接 为什么硬链接的文件内容可以与源文件同步更新，并且在源文件删除之后硬链接文件依旧可以正常访问 通过查看文件的i节点可以发现源文件与硬链接文件的i节点相同，这就意味着对文件内容进行操作的时候该i节点对应的文件会同步更新，但是在删除源文件的时候其实只是删除了一个源文件inode的引用而已，并不会删除磁盘中的数据本身 参考文章]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>linux</tag>
+        <tag>bash</tag>
       </tags>
   </entry>
 </search>
